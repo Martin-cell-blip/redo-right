@@ -24,8 +24,16 @@ python -m redo_right causes                      # 看六类错因
 python -m redo_right add --topic 数列-递推 --cause C2 --problem "讲义 L3 例 4" --note "没想到构造等比"
 python -m redo_right due                         # 今天该重做什么
 python -m redo_right redo <id> --pass            # 或 --fail，可加 --seconds 300
+python -m redo_right retag <id> --cause C2 --reason "其实是没想到换元"   # 累计两次做错后必须先做这步
+python -m redo_right report --week-end 2026-10-12  # 学生周报（Markdown）
+python -m redo_right export --out mistakes.csv     # 给教研/家长的 CSV
 python -m redo_right list --status open
 ```
+
+## 两条写进代码的产品规则
+
+1. **未到重做日不能重做，一天只算一次。** 间隔的意义就是不要当天再做一遍；连点两次也不会把阶梯刷上去。
+2. **累计两次做错，先重新归因再重做。** 同一道题错两次是强信号：要么错因标错了，要么需要老师介入。系统把这道题从重做清单里拿出来单列，学生必须写一句“这次想清楚了错在哪”才能继续；同时打上老师关注标记，老师处理后写一句记录清除。
 
 零第三方依赖；数据是一份 JSON（默认 `redo_right_data.json`），每次写入前自动备份最近 5 份。
 

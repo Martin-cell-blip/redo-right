@@ -46,6 +46,8 @@ class Mistake:
     fail_count: int = 0
     due: str | None = None
     status: str = STATUS_OPEN
+    needs_retag: bool = False  # 累计两次做错后，必须先重新归因才能再重做
+    attention: bool = False  # 需要老师关注（二次错触发，老师处理后清除）
     attempts: list[Attempt] = field(default_factory=list)
     cause_history: list[CauseChange] = field(default_factory=list)
 

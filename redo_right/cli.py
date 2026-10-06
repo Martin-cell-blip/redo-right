@@ -10,6 +10,7 @@ from pathlib import Path
 from . import __version__
 from .ladder import describe_stage
 from .model import SOURCES
+from .report import export_csv, render_student_report, weekly_summary
 from .service import Service, ServiceError
 from .store import StoreError
 from .taxonomy import TaxonomyError, load_taxonomy
@@ -68,6 +69,23 @@ def build_parser() -> argparse.ArgumentParser:
     s = sub.add_parser("list", help="列出错题")
     s.add_argument("--status", choices=("open", "closed", "archived"), default=None)
 
+    s = sub.add_parser("retag", help="重新归因（累计两次做错后必须先做这一步）")
+    s.add_argument("id")
+    s.add_argument("--cause", required=True)
+    s.add_argument("--reason", required=True, help="这次想清楚了错在哪？")
+    s.add_argument("--by", default="student", choices=("student", "teacher"))
+
+    s = sub.add_parser("attended", help="老师已处理，清除关注标记")
+    s.add_argument("id")
+    s.add_argument("--note", required=True)
+
+    s = sub.add_parser("report", help="学生周报（Markdown）")
+    s.add_argument("--week-end", type=_parse_date, default=None, help="周报截止日，默认今天")
+    s.add_argument("--out", default=None, help="写入文件；不填则打印")
+
+    s = sub.add_parser("export", help="导出 CSV（教研/家长可用 Excel 打开）")
+    s.add_argument("--out", required=True)
+
     sub.add_parser("causes", help="显示错因表")
     return p
 
@@ -104,8 +122,13 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         ladder = svc.document()["ladder"]
         if args.cmd == "due":
+            retags = svc.pending_retag()
+            if retags:
+                print("先重新归因（累计两次做错，想清楚错在哪一类再重做）：")
+                for m in retags:
+                    print("  " + _fmt(m, ladder))
             items = svc.due()
-            if not items:
+            if not items and not retags:
                 print("今天没有到期的错题。")
             for m in items:
                 c = svc.taxonomy.get(m.cause)
@@ -124,6 +147,29 @@ def main(argv: list[str] | None = None) -> int:
         if args.cmd == "archive":
             m = svc.archive(args.id, args.reason)
             print(f"已归档 {m.id}")
+            return 0
+        if args.cmd == "retag":
+            m = svc.retag(args.id, args.cause, args.reason, by=args.by)
+            c = svc.taxonomy.get(m.cause)
+            print(f"已重新归因为 {c.code} {c.name}。下次重做 {m.due}，重做前先：{c.next_step}")
+            return 0
+        if args.cmd == "attended":
+            m = svc.clear_attention(args.id, args.note)
+            print(f"已清除 {m.id} 的关注标记")
+            return 0
+        if args.cmd == "report":
+            doc = svc.document()
+            week_end = args.week_end or (args.today or date.today())
+            text = render_student_report(weekly_summary(doc, week_end), svc.taxonomy, doc)
+            if args.out:
+                Path(args.out).write_text(text, encoding="utf-8")
+                print(f"周报已写入 {args.out}")
+            else:
+                print(text, end="")
+            return 0
+        if args.cmd == "export":
+            Path(args.out).write_text(export_csv(svc.document(), svc.taxonomy), encoding="utf-8-sig")
+            print(f"已导出 {args.out}")
             return 0
         if args.cmd == "list":
             for m in svc.list(args.status):

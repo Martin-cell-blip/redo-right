@@ -26,6 +26,11 @@ class ServiceError(ValueError):
     pass
 
 
+# 二次错阈值。Anki 的 leech 规则是 8 次失败才挂起一张卡；竞赛题一次重做要 10–20 分钟，
+# 同一道题累计错两次已经是强信号：要么错因标错了，要么需要老师介入。
+RETAG_THRESHOLD = 2
+
+
 def _default_id() -> str:
     return uuid.uuid4().hex[:8]
 
@@ -108,10 +113,20 @@ class Service:
         out = [
             m
             for m in self._mistakes(doc)
-            if m.status == STATUS_OPEN and m.due and date.fromisoformat(m.due) <= on
+            if m.status == STATUS_OPEN
+            and not m.needs_retag  # 二次错的题先归因，不进重做清单
+            and m.due
+            and date.fromisoformat(m.due) <= on
         ]
         out.sort(key=lambda m: (m.due or "", m.created))
         return out
+
+    def pending_retag(self) -> list[Mistake]:
+        doc = self._load()
+        return sorted(
+            (m for m in self._mistakes(doc) if m.status == STATUS_OPEN and m.needs_retag),
+            key=lambda m: (m.created, m.id),
+        )
 
     def redo(self, mistake_id: str, passed: bool, seconds: int | None = None, note: str = "") -> Mistake:
         doc = self._load()
@@ -120,6 +135,10 @@ class Service:
         m = self._find(mistakes, mistake_id)
         if m.status != STATUS_OPEN:
             raise ServiceError(f"错题 {m.id} 状态为 {m.status}，不能重做")
+        if m.needs_retag:
+            raise ServiceError(
+                f"错题 {m.id} 已累计 {m.fail_count} 次做错，先用 retag 重新归因（想清楚到底错在哪一类）再重做"
+            )
         if any(a.date == today.isoformat() for a in m.attempts):
             raise ServiceError("今天已经记录过这道题的重做，一天只算一次")
         if seconds is not None and seconds < 0:
@@ -134,6 +153,41 @@ class Service:
         m.due = new.due.isoformat() if new.due else None
         if new.closed:
             m.status = STATUS_CLOSED
+        if not passed and m.fail_count >= RETAG_THRESHOLD:
+            m.needs_retag = True
+            m.attention = True
+        self._write_back(doc, mistakes)
+        return m
+
+    def retag(self, mistake_id: str, new_cause: str, reason: str, by: str = "student") -> Mistake:
+        """重新归因。允许标回同一编码，但必须写理由——理由本身就是反思。"""
+        self.taxonomy.get(new_cause)
+        if not reason.strip():
+            raise ServiceError("重新归因必须写理由（这次想清楚了错在哪？）")
+        if by not in ("student", "teacher", "ai-suggested-accepted"):
+            raise ServiceError("by 必须是 student / teacher / ai-suggested-accepted")
+        doc = self._load()
+        mistakes = self._mistakes(doc)
+        m = self._find(mistakes, mistake_id)
+        if m.status != STATUS_OPEN:
+            raise ServiceError(f"错题 {m.id} 状态为 {m.status}，不需要重新归因")
+        m.cause_history.append(
+            CauseChange(self._today().isoformat(), m.cause, new_cause, reason.strip(), by)
+        )
+        m.cause = new_cause
+        m.needs_retag = False
+        self._write_back(doc, mistakes)
+        return m
+
+    def clear_attention(self, mistake_id: str, note: str) -> Mistake:
+        """老师处理完（讲过了 / 换题了）后清除关注标记，须留一句处理记录。"""
+        if not note.strip():
+            raise ServiceError("清除关注必须写处理记录")
+        doc = self._load()
+        mistakes = self._mistakes(doc)
+        m = self._find(mistakes, mistake_id)
+        m.attention = False
+        m.note = (m.note + f"\n[老师 {self._today().isoformat()}] {note.strip()}").strip()
         self._write_back(doc, mistakes)
         return m
 
