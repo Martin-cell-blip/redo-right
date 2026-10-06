@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+*.json.tmp
+*.json.bak/
+redo_right_data.json
+out/
+.env

@@ -1,0 +1,47 @@
+{
+  "version": "default-2026-10",
+  "causes": [
+    {
+      "code": "C1",
+      "name": "概念不清",
+      "description": "定义、定理条件或公式本身记错、记混、不知道。",
+      "next_step": "回看讲义对应知识点，先用自己的话复述定义或定理的条件，再重做。",
+      "redo_mode": "explain_first"
+    },
+    {
+      "code": "C2",
+      "name": "思路未想到",
+      "description": "概念都懂，但没想到用哪个方法切入，或切入点选错。",
+      "next_step": "写一句话：这题的信号词是什么→对应哪个方法。写完再重做。",
+      "redo_mode": "explain_first"
+    },
+    {
+      "code": "C3",
+      "name": "计算失误",
+      "description": "思路对、方法对，中间算错、符号错、抄错。",
+      "next_step": "慢做一遍，每一步写出验算；重做时限时。",
+      "redo_mode": "timed"
+    },
+    {
+      "code": "C4",
+      "name": "审题错误",
+      "description": "看漏条件、看错所求、把题意理解反了。",
+      "next_step": "圈出题干每个条件和所求，复述一遍题意，再重做。",
+      "redo_mode": "plain"
+    },
+    {
+      "code": "C5",
+      "name": "时间不够",
+      "description": "会做但考试时没时间，或做得太慢。",
+      "next_step": "限时重做并记录用时，和上次比。",
+      "redo_mode": "timed"
+    },
+    {
+      "code": "C6",
+      "name": "表达不规范",
+      "description": "答案对但步骤跳跃、缺关键说明、书写不规范被扣分。",
+      "next_step": "对照标准答案把每个推理步骤补全，重做时按阅卷标准写满。",
+      "redo_mode": "full_steps"
+    }
+  ]
+}
