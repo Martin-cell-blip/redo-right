@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>再做对</title>
+<style>
+:root{
+  --paper:#f7f2e8; --grid:rgba(31,42,68,.09); --ink:#1f2a44; --ink-2:#55607a;
+  --vermilion:#c23b22; --moss:#2e6b4f; --card:#fffdf8;
+  --display:"Noto Serif SC","Songti SC","STSong","SimSun",serif;
+  --body:"PingFang SC","Microsoft YaHei","Noto Sans SC","Source Han Sans SC",sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;color:var(--ink);font-family:var(--body);line-height:1.55;
+  background:var(--paper) repeating-linear-gradient(0deg,transparent 0 23px,var(--grid) 23px 24px)}
+.wrap{max-width:720px;margin:0 auto;padding:22px 16px 72px}
+header{display:flex;align-items:flex-end;justify-content:space-between;border-bottom:2px solid var(--ink);padding-bottom:10px;margin-bottom:10px}
+h1{font-family:var(--display);font-weight:700;font-size:34px;margin:0;letter-spacing:.08em;line-height:1}
+h1 small{display:block;font-family:var(--body);font-weight:400;font-size:11px;letter-spacing:.32em;color:var(--ink-2);margin-bottom:8px}
+.stamp{font-family:var(--display);border:3px double var(--vermilion);color:var(--vermilion);padding:3px 10px;font-size:13px;letter-spacing:.22em;transform:rotate(-6deg);white-space:nowrap}
+.meta{font-size:13px;color:var(--ink-2);margin-bottom:22px}
+section{background:var(--card);border:1.5px solid var(--ink);box-shadow:4px 4px 0 var(--ink);padding:16px;margin-bottom:22px;opacity:0;animation:rise .45s ease forwards}
+section:nth-of-type(1){animation-delay:.02s} section:nth-of-type(2){animation-delay:.09s} section:nth-of-type(3){animation-delay:.16s}
+section:nth-of-type(4){animation-delay:.23s} section:nth-of-type(5){animation-delay:.30s} section:nth-of-type(6){animation-delay:.37s}
+h2{font-family:var(--display);font-size:18px;margin:0 0 12px;display:flex;align-items:baseline;gap:10px}
+h2 .n{font-family:var(--body);font-weight:400;font-size:12px;color:var(--ink-2)}
+.nums{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.num{border-left:3px solid var(--ink);padding-left:10px}
+.num b{display:block;font-family:var(--display);font-size:28px;line-height:1.05}
+.num span{font-size:12px;color:var(--ink-2)}
+.item{border-top:1px dashed rgba(31,42,68,.3);padding:14px 0 6px}
+.item:first-child{border-top:0;padding-top:4px}
+.item .t{font-weight:600}
+.item .p{color:var(--ink-2);font-size:14px}
+.tag{display:inline-block;font-size:11px;border:1px solid var(--ink);padding:0 6px;margin-left:6px;vertical-align:middle;line-height:1.6}
+.tag.v{border-color:var(--vermilion);color:var(--vermilion)}
+.step{background:var(--paper);border-left:3px solid var(--vermilion);padding:6px 10px;margin:8px 0;font-size:14px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px}
+.row>input,.row>select{flex:1;min-width:120px}
+button{font-family:var(--body);font-size:14px;border:1.5px solid var(--ink);background:var(--card);color:var(--ink);padding:8px 14px;cursor:pointer;box-shadow:2px 2px 0 var(--ink);transition:transform .08s,box-shadow .08s}
+button:active{transform:translate(2px,2px);box-shadow:0 0 0 var(--ink)}
+button.ok{background:var(--moss);border-color:var(--moss);color:#fff}
+button.bad{background:var(--vermilion);border-color:var(--vermilion);color:#fff}
+button.ghost{box-shadow:none;border-style:dashed}
+button:disabled{opacity:.45;cursor:not-allowed}
+input,select,textarea{font-family:var(--body);font-size:14px;padding:8px;border:1.5px solid var(--ink);background:#fff;width:100%;color:var(--ink)}
+textarea{min-height:64px;resize:vertical}
+label{font-size:12px;color:var(--ink-2);display:block;margin-top:10px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.empty{color:var(--ink-2);font-style:italic;margin:0}
+.suggest{border:1.5px dashed var(--vermilion);padding:10px 12px;margin-top:10px;font-size:14px;background:#fff}
+.suggest q{color:var(--vermilion)}
+pre{white-space:pre-wrap;font-family:var(--body);font-size:14px;background:var(--paper);padding:12px;border:1px solid var(--grid);margin:10px 0 0}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;max-width:90vw}
+.toast.show{opacity:1}
+footer{font-size:12px;color:var(--ink-2);text-align:center}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@media (max-width:520px){.nums{grid-template-columns:1fr 1fr}.num b{font-size:24px}h1{font-size:28px}.grid2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1><small>错题闭环 · REDO RIGHT</small>再做对</h1>
+    <div class="stamp">隔天 · 一周 · 三周</div>
+  </header>
+  <div class="meta" id="meta">载入中…</div>
+  <div id="app"></div>
+  <footer>一道错题不算改过了，直到它在三个间隔点上都被重新做对。</footer>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let S = null;
+const pending = {};           // 建议编号缓存：key → suggestion id
+
+async function api(path, body) {
+  const r = await fetch(path, body ? {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)} : undefined);
+  const ct = r.headers.get('content-type') || '';
+  const data = ct.includes('json') ? await r.json() : await r.text();
+  if (!r.ok) throw new Error((data && data.error) || data || ('HTTP ' + r.status));
+  return data;
+}
+function toast(msg, bad) { const t = $('#toast'); t.textContent = msg; t.style.background = bad ? 'var(--vermilion)' : 'var(--ink)'; t.classList.add('show'); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), 2400); }
+async function act(fn, okMsg) { try { await fn(); if (okMsg) toast(okMsg); await load(); } catch (e) { toast(e.message, true); } }
+async function load() { S = await api('/api/state'); render(); }
+
+function causeOptions(sel) {
+  return S.causes.map(c => `<option value="${c.code}" ${c.code === sel ? 'selected' : ''}>${c.code} ${esc(c.name)}</option>`).join('');
+}
+function pct(x) { return x == null ? '—' : Math.round(x * 100) + '%'; }
+
+function render() {
+  if (!S.initialized) {
+    $('#meta').textContent = '还没有学生档案。';
+    $('#app').innerHTML = `
+      <section><h2>建立档案</h2>
+        <div class="grid2"><div><label>学生</label><input id="i-name" placeholder="姓名"></div><div><label>年级</label><input id="i-grade" placeholder="高一"></div></div>
+        <div class="row"><button class="ok" onclick="initDoc()">开始</button></div>
+      </section>`;
+    return;
+  }
+  const w = S.week, st = S.student;
+  $('#meta').textContent = `${st.name} · ${st.grade} · 今天 ${S.today} · 阶梯 ${S.ladder.join(' / ')} 天${S.ai_enabled ? ' · AI 建议已开' : ''}`;
+  const retag = S.retag.map(m => `
+    <div class="item">
+      <div class="t">${esc(m.topic)} <span class="tag v">${esc(m.cause)} ${esc(m.cause_name)}</span> <span class="tag">错 ${m.fail_count} 次</span></div>
+      <div class="p">${esc(m.problem)}</div>
+      <div class="step">这道题两次没做对。先写一句：这次想清楚了，错在哪一类？为什么？</div>
+      <textarea id="rr-${m.id}" placeholder="我这次想清楚了……"></textarea>
+      <div class="row">
+        <select id="rc-${m.id}">${causeOptions(m.cause)}</select>
+        ${S.ai_enabled || true ? `<button class="ghost" onclick="suggestFor('${m.id}')">AI 建议错因</button>` : ''}
+        <button class="ok" onclick="doRetag('${m.id}')">确认归因</button>
+      </div>
+      <div id="rs-${m.id}"></div>
+    </div>`).join('');
+  const due = S.due.map(m => `
+    <div class="item">
+      <div class="t">${esc(m.topic)} <span class="tag">${esc(m.cause)} ${esc(m.cause_name)}</span> <span class="tag">${esc(m.stage_text)}</span></div>
+      <div class="p">${esc(m.problem)}${m.due < S.today ? ` · <span style="color:var(--vermilion)">到期 ${m.due}</span>` : ''}</div>
+      <div class="step">重做前先：${esc(m.next_step)}</div>
+      <div class="row">
+        ${m.redo_mode === 'timed' ? `<input id="sec-${m.id}" type="number" min="0" placeholder="用时（秒）· 本题限时" style="max-width:170px">` : ''}
+        <input id="nt-${m.id}" placeholder="这次怎么想的（选填）">
+      </div>
+      <div class="row">
+        <button class="ok" onclick="redo('${m.id}', true)">做对了</button>
+        <button class="bad" onclick="redo('${m.id}', false)">又错了</button>
+      </div>
+    </div>`).join('');
+  $('#app').innerHTML = `
+    <section>
+      <h2>本周 <span class="n">${w.week_start} ~ ${w.week_end}</span></h2>
+      <div class="nums">
+        <div class="num"><b>${pct(w.closure_rate)}</b><span>累计闭环率 · ${w.closed_total}/${w.closed_total + w.open_total}</span></div>
+        <div class="num"><b>${w.attempts}</b><span>本周重做 · 做对 ${w.passed}</span></div>
+        <div class="num"><b>${w.active_days}<small style="font-size:14px">/7</small></b><span>有重做的天数</span></div>
+        <div class="num"><b style="color:${S.retag.length ? 'var(--vermilion)' : 'inherit'}">${S.retag.length}</b><span>两次没做对</span></div>
+      </div>
+    </section>
+    ${S.retag.length ? `<section><h2>先重新归因 <span class="n">${S.retag.length} 道</span></h2>${retag}</section>` : ''}
+    <section>
+      <h2>今天到期 <span class="n">${S.due.length} 道</span></h2>
+      ${due || '<p class="empty">今天没有到期的错题。</p>'}
+    </section>
+    <section>
+      <h2>记一道错题 <span class="n">20 秒 · 只记引用，不抄题，不写答案</span></h2>
+      <div class="grid2">
+        <div><label>知识点</label><input id="a-topic" placeholder="数列-递推"></div>
+        <div><label>来源</label><select id="a-source">${S.sources.map(s => `<option>${s}</option>`).join('')}</select></div>
+      </div>
+      <label>题目引用</label><input id="a-problem" placeholder="讲义 L3 例 4 / 作业 2 第 5 题">
+      <label>我当时怎么想的</label><textarea id="a-note" placeholder="没想到要构造等比数列，第三步符号还算错了"></textarea>
+      <div class="row">
+        <select id="a-cause">${causeOptions('')}</select>
+        <button class="ghost" onclick="suggestNew()">AI 建议错因</button>
+        <button class="ok" onclick="addNew()">记下</button>
+      </div>
+      <div id="a-sugg"></div>
+    </section>
+    <section>
+      <h2>周报</h2>
+      <div class="row">
+        <button onclick="showReport('/api/report/weekly')">学生周报</button>
+        <button onclick="showReport('/api/report/parent')">家长周报</button>
+        <button class="ghost" onclick="showReport('/api/report/parent?ai=1')">家长周报 · AI 措辞</button>
+        <button class="ghost" id="copy" onclick="copyReport()" disabled>复制</button>
+      </div>
+      <pre id="report" style="display:none"></pre>
+    </section>`;
+}
+
+async function initDoc() { await act(() => api('/api/init', {student: $('#i-name').value, grade: $('#i-grade').value}), '档案已建立'); }
+async function redo(id, passed) {
+  const sec = $(`#sec-${id}`); const nt = $(`#nt-${id}`);
+  await act(() => api(`/api/mistakes/${id}/redo`, {passed, seconds: sec && sec.value !== '' ? Number(sec.value) : null, note: nt ? nt.value : ''}),
+            passed ? '做对了，下一档已排好' : '回到阶梯底部，明天再来');
+}
+function renderSuggest(box, sg, key, selectId) {
+  pending[key] = sg.id;
+  box.innerHTML = `<div class="suggest">
+    ${sg.code ? `建议 <b>${esc(sg.code)} ${esc(sg.cause_name)}</b>（${esc(sg.confidence)} · ${sg.source === 'ai' ? 'AI' : '规则'}）<br>依据你写的：<q>${esc(sg.evidence_quote)}</q>` : `暂时判断不出错因（${sg.source === 'ai' ? 'AI' : '规则'}）`}
+    <br>先回答这个问题再决定：${esc(sg.question)}
+    ${sg.code ? `<div class="row"><button class="ghost" onclick="document.getElementById('${selectId}').value='${sg.code}'">填入 ${esc(sg.code)}</button></div>` : ''}
+  </div>`;
+}
+async function suggestNew() {
+  const note = $('#a-note').value.trim(), problem = $('#a-problem').value.trim();
+  if (!note) return toast('先写一句“我当时怎么想的”，AI 才有依据', true);
+  try { const sg = await api('/api/suggest', {problem, note}); renderSuggest($('#a-sugg'), sg, 'new', 'a-cause'); } catch (e) { toast(e.message, true); }
+}
+async function suggestFor(id) {
+  const note = $(`#rr-${id}`).value.trim(); const m = S.retag.find(x => x.id === id);
+  if (!note) return toast('先写一句这次想清楚了什么', true);
+  try { const sg = await api('/api/suggest', {problem: m.problem, note, for_id: id}); renderSuggest($(`#rs-${id}`), sg, id, `rc-${id}`); } catch (e) { toast(e.message, true); }
+}
+async function addNew() {
+  const body = {topic: $('#a-topic').value, source: $('#a-source').value, problem: $('#a-problem').value, note: $('#a-note').value, cause: $('#a-cause').value, suggestion: pending['new'] || null};
+  await act(async () => { const r = await api('/api/mistakes', body); delete pending['new']; return r; }, '已记下，明天重做');
+}
+async function doRetag(id) {
+  const body = {cause: $(`#rc-${id}`).value, reason: $(`#rr-${id}`).value, suggestion: pending[id] || null};
+  await act(async () => { const r = await api(`/api/mistakes/${id}/retag`, body); delete pending[id]; return r; }, '已重新归因，明天重做');
+}
+async function showReport(path) {
+  try { const t = await api(path); const pre = $('#report'); pre.textContent = t; pre.style.display = 'block'; $('#copy').disabled = false; } catch (e) { toast(e.message, true); }
+}
+async function copyReport() { try { await navigator.clipboard.writeText($('#report').textContent); toast('已复制'); } catch (e) { toast('复制失败，请手动选择文本', true); } }
+load().catch(e => { $('#meta').textContent = '载入失败：' + e.message; });
+</script>
+</body>
+</html>

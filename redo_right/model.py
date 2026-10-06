@@ -6,7 +6,7 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, field
 from datetime import date
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2  # v1: v0.1–v0.4；v2 (v0.5): ai_log 必填、二次错标记落盘、meta
 
 STATUS_OPEN = "open"
 STATUS_CLOSED = "closed"
@@ -66,9 +66,13 @@ class Mistake:
 
 
 def empty_document(student_name: str, grade: str, ladder: list[int]) -> dict:
+    from . import __version__
+
     return {
         "schema_version": SCHEMA_VERSION,
+        "meta": {"created_with": __version__},
         "student": {"name": student_name, "grade": grade},
         "ladder": list(ladder),
         "mistakes": [],
+        "ai_log": [],
     }

@@ -63,6 +63,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     s = sub.add_parser("ai-stats", help="AI 建议的采纳率等")
 
+    sub.add_parser("audit", help="数据一致性检查（十条不变量）")
+
+    s = sub.add_parser("serve", help="启动本地网页（需要 fastapi + uvicorn）")
+    s.add_argument("--port", type=int, default=8761)
+
     sub.add_parser("due", help="今天到期要重做的题")
 
     s = sub.add_parser("redo", help="记录一次重做结果")
@@ -194,6 +199,27 @@ def main(argv: list[str] | None = None) -> int:
             print(f"建议编号 {sid}。记错题时加 --suggestion {sid}，系统会记录你是否采纳。")
             if sg.violations:
                 print(f"（AI 输出有 {len(sg.violations)} 处违约被拦下）", file=sys.stderr)
+            return 0
+        if args.cmd == "audit":
+            from .audit import check_invariants
+
+            problems = check_invariants(svc.document(), svc.taxonomy)
+            if problems:
+                print(f"数据一致性检查：{len(problems)} 处违规", file=sys.stderr)
+                for p_ in problems:
+                    print("  " + p_, file=sys.stderr)
+                return 1
+            print("数据一致性检查：通过")
+            return 0
+        if args.cmd == "serve":  # pragma: no cover - 需要真实端口
+            import os
+
+            import uvicorn
+
+            os.environ["REDO_RIGHT_FILE"] = str(svc.path)
+            from .app import create_app
+
+            uvicorn.run(create_app(svc.path), host="127.0.0.1", port=args.port)
             return 0
         if args.cmd == "ai-stats":
             st = svc.ai_stats()

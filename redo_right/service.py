@@ -42,11 +42,15 @@ class Service:
         taxonomy: Taxonomy | None = None,
         today_fn: Callable[[], date] = date.today,
         id_fn: Callable[[], str] = _default_id,
+        backup: bool = True,
+        durable: bool = True,
     ):
         self.path = Path(path)
         self.taxonomy = taxonomy or load_taxonomy()
         self._today = today_fn
         self._new_id = id_fn
+        self._backup = backup  # 压测/批量生成时关掉备份与 fsync，产品使用永远开着
+        self._durable = durable
 
     # ---------- 生命周期 ----------
     def init(self, student_name: str, grade: str, ladder: list[int] | None = None) -> dict:
@@ -61,7 +65,7 @@ class Service:
         return store.load(self.path)
 
     def _save(self, doc: dict) -> None:
-        store.save(self.path, doc)
+        store.save(self.path, doc, backup=self._backup, fsync=self._durable)
 
     def _mistakes(self, doc: dict) -> list[Mistake]:
         return [Mistake.from_dict(m) for m in doc["mistakes"]]
