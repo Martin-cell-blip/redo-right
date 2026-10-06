@@ -205,6 +205,52 @@ class Service:
         self._write_back(doc, mistakes)
         return m
 
+    # ---------- AI 建议日志（为“采纳率”留数据） ----------
+    def log_suggestion(self, kind: str, input_sha: str, output: dict, source: str,
+                       mistake_id: str | None = None) -> str:
+        if kind not in ("cause", "digest"):
+            raise ServiceError("kind 必须是 cause / digest")
+        doc = self._load()
+        log = doc.setdefault("ai_log", [])
+        sid = f"s{len(log) + 1:03d}"
+        log.append(
+            {"id": sid, "date": self._today().isoformat(), "kind": kind, "input_sha": input_sha,
+             "output": output, "source": source, "mistake_id": mistake_id, "accepted": None}
+        )
+        self._save(doc)
+        return sid
+
+    def resolve_suggestion(self, sid: str, chosen_code: str) -> bool:
+        """学生最终选了哪个编码；与建议一致记 accepted=True。返回是否一致。"""
+        doc = self._load()
+        for e in doc.get("ai_log", []):
+            if e["id"] == sid:
+                if e["kind"] != "cause":
+                    raise ServiceError(f"{sid} 不是错因建议")
+                accepted = e["output"].get("code") == chosen_code
+                e["accepted"] = accepted
+                e["chosen_code"] = chosen_code
+                self._save(doc)
+                return accepted
+        raise ServiceError(f"找不到建议 {sid!r}")
+
+    def ai_stats(self) -> dict:
+        log = self._load().get("ai_log", [])
+        cause = [e for e in log if e["kind"] == "cause"]
+        resolved = [e for e in cause if e["accepted"] is not None]
+        accepted = [e for e in resolved if e["accepted"]]
+        by_source = {}
+        for e in cause:
+            by_source[e["source"]] = by_source.get(e["source"], 0) + 1
+        return {
+            "cause_suggestions": len(cause),
+            "resolved": len(resolved),
+            "accepted": len(accepted),
+            "acceptance_rate": (len(accepted) / len(resolved)) if resolved else None,
+            "by_source": by_source,
+            "digest_rewrites": sum(1 for e in log if e["kind"] == "digest"),
+        }
+
     def list(self, status: str | None = None) -> list[Mistake]:
         doc = self._load()
         ms = self._mistakes(doc)

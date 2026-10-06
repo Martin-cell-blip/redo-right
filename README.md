@@ -49,6 +49,26 @@ python -m redo_right class --dir examples/demo_class sheets --on 2026-10-05 --ou
 重做发生在纸上。`sheet` / `class sheets` 生成 A4 重练单：每道题印“知识点 · 题目引用 · 重做前先做的一件事 · 作答区 · □对 □错 用时”，二次错的题变成归因单。
 `class sheets` 同时产出**物料清单**：每页 3 道，按学生算页数、总页数、双面张数、无需打印名单，以及发放核对要求——缺页错发在工具里不留痕，必须在发放时拦住。
 
+## AI 提效：只建议，不裁决
+
+```bash
+python -m redo_right suggest --problem "讲义 L3 例 4" --note "我当时没想到要先构造等比数列，第三步符号还错了"
+# 建议 C2 思路未想到（high，来源 ai）
+# 依据你写的：“没想到要先构造等比数列”
+# 先回答这个问题再决定：你当时是不知道要构造等比数列，还是知道但没往这个方向想？
+# 建议编号 s001。记错题时加 --suggestion s001，系统会记录你是否采纳。
+python -m redo_right parent --ai            # 把家长周报措辞改口语；数字一个都不能变
+python -m redo_right ai-stats               # AI 建议采纳率
+```
+
+| AI 做的事 | 合同（违约 → 重试一次 → 回退确定性版本） |
+|---|---|
+| 读学生原话，建议错因编码 | 编码在错因表内；依据是学生原话**逐字**引用；必须反问一句（问号结尾）；反问不得含解题内容 |
+| 改写家长周报措辞 | 每个数字都必须在确定性事实里；不得出现评价词；≤320 字 |
+
+AI 不改数字、不生成答案、不替学生选错因。`ai-stats` 的采纳率是衡量“AI 帮没帮上”的产品口径。
+无 key 时所有命令照常工作（关键词规则 + 模板文本）。配置：`REDO_RIGHT_API_KEY`（或 `DEEPSEEK_API_KEY`）、`REDO_RIGHT_BASE_URL`（默认 https://api.deepseek.com）、`REDO_RIGHT_MODEL`（默认 deepseek-chat）。
+
 ## 演示数据
 
 `examples/demo_class/` 是 **合成** 演示班级（12 人 × 3 周，`tools/make_demo_class.py`，seed 固定，只通过产品自己的 Service 生成，因此服从全部产品规则）。它用来演示热力图与物料清单长什么样，不是真实学生，不能作为效果证据。

@@ -33,6 +33,8 @@ def _validate(doc: dict) -> None:
             raise StoreError(f"数据文件缺少字段 {key!r}")
     if not isinstance(doc["mistakes"], list):
         raise StoreError("mistakes 必须是列表")
+    if "ai_log" in doc and not isinstance(doc["ai_log"], list):
+        raise StoreError("ai_log 必须是列表")
     ids: set[str] = set()
     for m in doc["mistakes"]:
         for key in ("id", "created", "topic", "cause", "status"):

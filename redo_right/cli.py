@@ -8,6 +8,7 @@ from datetime import date
 from pathlib import Path
 
 from . import __version__
+from .ai import api_configured, phrase_parent_digest, sha, suggest_cause
 from .ladder import describe_stage
 from .model import SOURCES
 from .classroom import heatmap, load_class, render_heatmap_md, suggestions
@@ -53,6 +54,14 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--problem", required=True, help="题目引用（题号/开头），不要写答案")
     s.add_argument("--source", default="作业", choices=SOURCES)
     s.add_argument("--note", default="", help="当时怎么想的（归因依据）")
+    s.add_argument("--suggestion", default=None, help="之前 suggest 给的编号（记录是否采纳）")
+
+    s = sub.add_parser("suggest", help="让 AI 根据“我当时怎么想的”建议一个错因（只建议，不替你选）")
+    s.add_argument("--problem", required=True)
+    s.add_argument("--note", required=True, help="学生原话")
+    s.add_argument("--for", dest="for_id", default=None, help="若是给已有错题重新归因，填其 id")
+
+    s = sub.add_parser("ai-stats", help="AI 建议的采纳率等")
 
     sub.add_parser("due", help="今天到期要重做的题")
 
@@ -76,6 +85,7 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--cause", required=True)
     s.add_argument("--reason", required=True, help="这次想清楚了错在哪？")
     s.add_argument("--by", default="student", choices=("student", "teacher"))
+    s.add_argument("--suggestion", default=None, help="之前 suggest 给的编号（记录是否采纳）")
 
     s = sub.add_parser("attended", help="老师已处理，清除关注标记")
     s.add_argument("id")
@@ -91,6 +101,7 @@ def build_parser() -> argparse.ArgumentParser:
     s = sub.add_parser("parent", help="家长周报（纯文字，三个数字一件事）")
     s.add_argument("--week-end", type=_parse_date, default=None)
     s.add_argument("--out", default=None)
+    s.add_argument("--ai", action="store_true", help="让 AI 把措辞改口语（数字一个都不能变，违约自动回退）")
 
     s = sub.add_parser("sheet", help="本学生的重练单（A4 HTML，可直接打印）")
     s.add_argument("--on", type=_parse_date, default=None, help="打印日期，默认今天")
@@ -166,6 +177,28 @@ def main(argv: list[str] | None = None) -> int:
             m = svc.add(args.topic, args.cause, args.problem, args.source, args.note)
             cause = svc.taxonomy.get(m.cause)
             print(f"已记录 {m.id}，下次重做 {m.due}。重做前先：{cause.next_step}")
+            if args.suggestion:
+                ok = svc.resolve_suggestion(args.suggestion, args.cause)
+                print("（采纳了 AI 建议）" if ok else "（没有采纳 AI 建议，已记录）")
+            return 0
+        if args.cmd == "suggest":
+            sg = suggest_cause(args.problem, args.note, svc.taxonomy)
+            sid = svc.log_suggestion("cause", sha(args.problem + "\n" + args.note), sg.to_dict(), sg.source, args.for_id)
+            if sg.code:
+                c = svc.taxonomy.get(sg.code)
+                print(f"建议 {c.code} {c.name}（{sg.confidence}，来源 {sg.source}）")
+                print(f"依据你写的：“{sg.evidence_quote}”")
+            else:
+                print(f"暂时判断不出错因（来源 {sg.source}）")
+            print(f"先回答这个问题再决定：{sg.question}")
+            print(f"建议编号 {sid}。记错题时加 --suggestion {sid}，系统会记录你是否采纳。")
+            if sg.violations:
+                print(f"（AI 输出有 {len(sg.violations)} 处违约被拦下）", file=sys.stderr)
+            return 0
+        if args.cmd == "ai-stats":
+            st = svc.ai_stats()
+            rate = "—" if st["acceptance_rate"] is None else f"{round(st['acceptance_rate'] * 100)}%"
+            print(f"错因建议 {st['cause_suggestions']} 次（来源 {st['by_source']}），已决定 {st['resolved']}，采纳 {st['accepted']}，采纳率 {rate}；家长周报改写 {st['digest_rewrites']} 次")
             return 0
         ladder = svc.document()["ladder"]
         if args.cmd == "due":
@@ -196,9 +229,17 @@ def main(argv: list[str] | None = None) -> int:
             print(f"已归档 {m.id}")
             return 0
         if args.cmd == "retag":
-            m = svc.retag(args.id, args.cause, args.reason, by=args.by)
+            by = args.by
+            accepted = None
+            if args.suggestion:
+                accepted = svc.resolve_suggestion(args.suggestion, args.cause)
+                if accepted and by == "student":
+                    by = "ai-suggested-accepted"
+            m = svc.retag(args.id, args.cause, args.reason, by=by)
             c = svc.taxonomy.get(m.cause)
             print(f"已重新归因为 {c.code} {c.name}。下次重做 {m.due}，重做前先：{c.next_step}")
+            if accepted is not None:
+                print("（采纳了 AI 建议）" if accepted else "（没有采纳 AI 建议，已记录）")
             return 0
         if args.cmd == "attended":
             m = svc.clear_attention(args.id, args.note)
@@ -220,7 +261,15 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.cmd == "parent":
             week_end = args.week_end or (args.today or date.today())
-            text = parent_digest(weekly_summary(svc.document(), week_end), svc.taxonomy)
+            summary = weekly_summary(svc.document(), week_end)
+            text = parent_digest(summary, svc.taxonomy)
+            if args.ai:
+                if not api_configured():
+                    print("未配置 API key，使用确定性版本。", file=sys.stderr)
+                text, source, violations = phrase_parent_digest(text, summary)
+                svc.log_suggestion("digest", sha(text), {"source": source, "violations": violations}, source)
+                if violations:
+                    print(f"（AI 改写有 {len(violations)} 处违约，{'已回退' if source == 'deterministic' else '重试后通过'}）", file=sys.stderr)
             if args.out:
                 Path(args.out).write_text(text, encoding="utf-8")
                 print(f"家长周报已写入 {args.out}")
