@@ -1,0 +1,756 @@
+{
+  "schema_version": 1,
+  "student": {
+    "name": "赵欣怡",
+    "grade": "高一"
+  },
+  "ladder": [
+    1,
+    7,
+    21
+  ],
+  "mistakes": [
+    {
+      "id": "07001",
+      "created": "2026-09-14",
+      "source": "讲义",
+      "topic": "数列-递推",
+      "problem": "讲义 W1 第 8 题",
+      "cause": "C2",
+      "note": "忘了这个公式",
+      "stage": 2,
+      "fail_count": 2,
+      "due": "2026-10-24",
+      "status": "open",
+      "needs_retag": false,
+      "attention": true,
+      "attempts": [
+        {
+          "date": "2026-09-17",
+          "passed": true,
+          "seconds": null,
+          "note": ""
+        },
+        {
+          "date": "2026-09-24",
+          "passed": false,
+          "seconds": null,
+          "note": "概念混了"
+        },
+        {
+          "date": "2026-09-25",
+          "passed": false,
+          "seconds": null,
+          "note": "忘了这个公式"
+        },
+        {
+          "date": "2026-09-26",
+          "passed": true,
+          "seconds": null,
+          "note": ""
+        },
+        {
+          "date": "2026-10-03",
+          "passed": true,
+          "seconds": null,
+          "note": ""
+        }
+      ],
+      "cause_history": [
+        {
+          "date": "2026-09-14",
+          "from_code": null,
+          "to_code": "C1",
+          "reason": "首次归因",
+          "by": "student"
+        },
+        {
+          "date": "2026-09-25",
+          "from_code": "C1",
+          "to_code": "C2",
+          "reason": "重做两次都错，重新想了一遍错因",
+          "by": "student"
+        }
+      ]
+    },
+    {
+      "id": "07002",
+      "created": "2026-09-15",
+      "source": "作业",
+      "topic": "组合-计数原理",
+      "problem": "作业 W1 第 7 题",
+      "cause": "C4",
+      "note": "概念混了",
+      "stage": 0,
+      "fail_count": 3,
+      "due": "2026-10-05",
+      "status": "open",
+      "needs_retag": true,
+      "attention": true,
+      "attempts": [
+        {
+          "date": "2026-09-17",
+          "passed": true,
+          "seconds": null,
+          "note": ""
+        },
+        {
+          "date": "2026-09-24",
+          "passed": false,
+          "seconds": null,
+          "note": "忘了这个公式"
+        },
+        {
+          "date": "2026-09-25",
+          "passed": true,
+          "seconds": null,
+          "note": ""
+        },
+        {
+          "date": "2026-10-02",
+          "passed": false,
+          "seconds": null,
+          "note": "忘了这个公式"
+        },
+        {
+          "date": "2026-10-04",
+          "passed": false,
+          "seconds": null,
+          "note": "把所求看错"
+        }
+      ],
+      "cause_history": [
+        {
+          "date": "2026-09-15",
+          "from_code": null,
+          "to_code": "C1",
+          "reason": "首次归因",
+          "by": "student"
+        },
+        {
+          "date": "2026-10-03",
+          "from_code": "C1",
+          "to_code": "C4",
+          "reason": "重做两次都错，重新想了一遍错因",
+          "by": "student"
+        }
+      ]
+    },
+    {
+      "id": "07003",
+      "created": "2026-09-18",
+      "source": "作业",
+      "topic": "组合-计数原理",
+      "problem": "作业 W1 第 4 题",
+      "cause": "C1",
+      "note": "概念混了",
+      "stage": 2,
+      "fail_count": 0,
+      "due": "2026-10-17",
+      "status": "open",
+      "needs_retag": false,
+      "attention": false,
+      "attempts": [
+        {
+          "date": "2026-09-19",
+          "passed": true,
+          "seconds": null,
+          "note": ""
+        },
+        {
+          "date": "2026-09-26",
+          "passed": true,
+          "seconds": null,
+          "note": ""
+        }
+      ],
+      "cause_history": [
+        {
+          "date": "2026-09-18",
+          "from_code": null,
+          "to_code": "C1",
+          "reason": "首次归因",
+          "by": "student"
+        }
+      ]
+    },
+    {
+      "id": "07004",
+      "created": "2026-09-20",
+      "source": "模考",
+      "topic": "组合-计数原理",
+      "problem": "模考 W1 第 13 题",
+      "cause": "C4",
+      "note": "题意理解反了",
+      "stage": 1,
+      "fail_count": 1,
+      "due": "2026-10-06",
+      "status": "open",
+      "needs_retag": false,
+      "attention": false,
+      "attempts": [
+        {
+          "date": "2026-09-21",
+          "passed": true,
+          "seconds": null,
+          "note": ""
+        },
+        {
+          "date": "2026-09-28",
+          "passed": false,
+          "seconds": null,
+          "note": "把所求看错"
+        },
+        {
+          "date": "2026-09-29",
+          "passed": true,
+          "seconds": null,
+          "note": ""
+        }
+      ],
+      "cause_history": [
+        {
+          "date": "2026-09-20",
+          "from_code": null,
+          "to_code": "C4",
+          "reason": "首次归因",
+          "by": "student"
+        }
+      ]
+    },
+    {
+      "id": "07005",
+      "created": "2026-09-20",
+      "source": "模考",
+      "topic": "解析几何-直线与圆",
+      "problem": "模考 W1 第 2 题",
+      "cause": "C3",
+      "note": "最后一步算错",
+      "stage": 2,
+      "fail_count": 0,
+      "due": "2026-10-20",
+      "status": "open",
+      "needs_retag": false,
+      "attention": false,
+      "attempts": [
+        {
+          "date": "2026-09-21",
+          "passed": true,
+          "seconds": 835,
+          "note": ""
+        },
+        {
+          "date": "2026-09-29",
+          "passed": true,
+          "seconds": 532,
+          "note": ""
+        }
+      ],
+      "cause_history": [
+        {
+          "date": "2026-09-20",
+          "from_code": null,
+          "to_code": "C3",
+          "reason": "首次归因",
+          "by": "student"
+        }
+      ]
+    },
+    {
+      "id": "07006",
+      "created": "2026-09-20",
+      "source": "模考",
+      "topic": "不等式-均值",
+      "problem": "模考 W1 第 16 题",
+      "cause": "C6",
+      "note": "想到的方法太绕",
+      "stage": 1,
+      "fail_count": 3,
+      "due": "2026-10-07",
+      "status": "open",
+      "needs_retag": false,
+      "attention": true,
+      "attempts": [
+        {
+          "date": "2026-09-21",
+          "passed": false,
+          "seconds": null,
+          "note": "想到的方法太绕"
+        },
+        {
+          "date": "2026-09-22",
+          "passed": false,
+          "seconds": null,
+          "note": "没想到换元"
+        },
+        {
+          "date": "2026-09-27",
+          "passed": false,
+          "seconds": null,
+          "note": "没想到换元"
+        },
+        {
+          "date": "2026-09-30",
+          "passed": true,
+          "seconds": null,
+          "note": ""
+        }
+      ],
+      "cause_history": [
+        {
+          "date": "2026-09-20",
+          "from_code": null,
+          "to_code": "C2",
+          "reason": "首次归因",
+          "by": "student"
+        },
+        {
+          "date": "2026-09-25",
+          "from_code": "C2",
+          "to_code": "C2",
+          "reason": "重做两次都错，重新想了一遍错因",
+          "by": "student"
+        },
+        {
+          "date": "2026-09-29",
+          "from_code": "C2",
+          "to_code": "C6",
+          "reason": "重做两次都错，重新想了一遍错因",
+          "by": "student"
+        }
+      ]
+    },
+    {
+      "id": "07007",
+      "created": "2026-09-22",
+      "source": "作业",
+      "topic": "不等式-均值",
+      "problem": "作业 W2 第 2 题",
+      "cause": "C6",
+      "note": "步骤跳了被扣分",
+      "stage": 2,
+      "fail_count": 0,
+      "due": "2026-10-22",
+      "status": "open",
+      "needs_retag": false,
+      "attention": false,
+      "attempts": [
+        {
+          "date": "2026-09-24",
+          "passed": true,
+          "seconds": null,
+          "note": ""
+        },
+        {
+          "date": "2026-10-01",
+          "passed": true,
+          "seconds": null,
+          "note": ""
+        }
+      ],
+      "cause_history": [
+        {
+          "date": "2026-09-22",
+          "from_code": null,
+          "to_code": "C6",
+          "reason": "首次归因",
+          "by": "student"
+        }
+      ]
+    },
+    {
+      "id": "07008",
+      "created": "2026-09-24",
+      "source": "讲义",
+      "topic": "组合-计数原理",
+      "problem": "讲义 W2 第 14 题",
+      "cause": "C2",
+      "note": "不知道怎么下手",
+      "stage": 2,
+      "fail_count": 1,
+      "due": "2026-10-24",
+      "status": "open",
+      "needs_retag": false,
+      "attention": false,
+      "attempts": [
+        {
+          "date": "2026-09-25",
+          "passed": false,
+          "seconds": null,
+          "note": "没想到换元"
+        },
+        {
+          "date": "2026-09-26",
+          "passed": true,
+          "seconds": null,
+          "note": ""
+        },
+        {
+          "date": "2026-10-03",
+          "passed": true,
+          "seconds": null,
+          "note": ""
+        }
+      ],
+      "cause_history": [
+        {
+          "date": "2026-09-24",
+          "from_code": null,
+          "to_code": "C2",
+          "reason": "首次归因",
+          "by": "student"
+        }
+      ]
+    },
+    {
+      "id": "07009",
+      "created": "2026-09-25",
+      "source": "讲义",
+      "topic": "组合-计数原理",
+      "problem": "讲义 W2 第 4 题",
+      "cause": "C4",
+      "note": "看漏了偶数条件",
+      "stage": 1,
+      "fail_count": 1,
+      "due": "2026-10-11",
+      "status": "open",
+      "needs_retag": false,
+      "attention": false,
+      "attempts": [
+        {
+          "date": "2026-09-26",
+          "passed": true,
+          "seconds": null,
+          "note": ""
+        },
+        {
+          "date": "2026-10-03",
+          "passed": false,
+          "seconds": null,
+          "note": "把所求看错"
+        },
+        {
+          "date": "2026-10-04",
+          "passed": true,
+          "seconds": null,
+          "note": ""
+        }
+      ],
+      "cause_history": [
+        {
+          "date": "2026-09-25",
+          "from_code": null,
+          "to_code": "C4",
+          "reason": "首次归因",
+          "by": "student"
+        }
+      ]
+    },
+    {
+      "id": "07010",
+      "created": "2026-09-27",
+      "source": "模考",
+      "topic": "数列-递推",
+      "problem": "模考 W2 第 4 题",
+      "cause": "C2",
+      "note": "想到的方法太绕",
+      "stage": 1,
+      "fail_count": 1,
+      "due": "2026-10-07",
+      "status": "open",
+      "needs_retag": false,
+      "attention": false,
+      "attempts": [
+        {
+          "date": "2026-09-28",
+          "passed": false,
+          "seconds": null,
+          "note": "想到的方法太绕"
+        },
+        {
+          "date": "2026-09-30",
+          "passed": true,
+          "seconds": null,
+          "note": ""
+        }
+      ],
+      "cause_history": [
+        {
+          "date": "2026-09-27",
+          "from_code": null,
+          "to_code": "C2",
+          "reason": "首次归因",
+          "by": "student"
+        }
+      ]
+    },
+    {
+      "id": "07011",
+      "created": "2026-09-27",
+      "source": "模考",
+      "topic": "三角-恒等变换",
+      "problem": "模考 W2 第 18 题",
+      "cause": "C3",
+      "note": "抄错数",
+      "stage": 1,
+      "fail_count": 1,
+      "due": "2026-10-06",
+      "status": "open",
+      "needs_retag": false,
+      "attention": false,
+      "attempts": [
+        {
+          "date": "2026-09-28",
+          "passed": false,
+          "seconds": 731,
+          "note": "抄错数"
+        },
+        {
+          "date": "2026-09-29",
+          "passed": true,
+          "seconds": 744,
+          "note": ""
+        }
+      ],
+      "cause_history": [
+        {
+          "date": "2026-09-27",
+          "from_code": null,
+          "to_code": "C3",
+          "reason": "首次归因",
+          "by": "student"
+        }
+      ]
+    },
+    {
+      "id": "07012",
+      "created": "2026-09-27",
+      "source": "模考",
+      "topic": "不等式-均值",
+      "problem": "模考 W2 第 15 题",
+      "cause": "C2",
+      "note": "没想到换元",
+      "stage": 1,
+      "fail_count": 1,
+      "due": "2026-10-06",
+      "status": "open",
+      "needs_retag": false,
+      "attention": false,
+      "attempts": [
+        {
+          "date": "2026-09-28",
+          "passed": false,
+          "seconds": null,
+          "note": "不知道怎么下手"
+        },
+        {
+          "date": "2026-09-29",
+          "passed": true,
+          "seconds": null,
+          "note": ""
+        }
+      ],
+      "cause_history": [
+        {
+          "date": "2026-09-27",
+          "from_code": null,
+          "to_code": "C2",
+          "reason": "首次归因",
+          "by": "student"
+        }
+      ]
+    },
+    {
+      "id": "07013",
+      "created": "2026-09-28",
+      "source": "作业",
+      "topic": "三角-恒等变换",
+      "problem": "作业 W3 第 4 题",
+      "cause": "C1",
+      "note": "概念混了",
+      "stage": 1,
+      "fail_count": 0,
+      "due": "2026-10-06",
+      "status": "open",
+      "needs_retag": false,
+      "attention": false,
+      "attempts": [
+        {
+          "date": "2026-09-29",
+          "passed": true,
+          "seconds": null,
+          "note": ""
+        }
+      ],
+      "cause_history": [
+        {
+          "date": "2026-09-28",
+          "from_code": null,
+          "to_code": "C1",
+          "reason": "首次归因",
+          "by": "student"
+        }
+      ]
+    },
+    {
+      "id": "07014",
+      "created": "2026-09-28",
+      "source": "讲义",
+      "topic": "数列-递推",
+      "problem": "讲义 W3 第 12 题",
+      "cause": "C2",
+      "note": "没想到换元",
+      "stage": 1,
+      "fail_count": 0,
+      "due": "2026-10-06",
+      "status": "open",
+      "needs_retag": false,
+      "attention": false,
+      "attempts": [
+        {
+          "date": "2026-09-29",
+          "passed": true,
+          "seconds": null,
+          "note": ""
+        }
+      ],
+      "cause_history": [
+        {
+          "date": "2026-09-28",
+          "from_code": null,
+          "to_code": "C2",
+          "reason": "首次归因",
+          "by": "student"
+        }
+      ]
+    },
+    {
+      "id": "07015",
+      "created": "2026-09-29",
+      "source": "作业",
+      "topic": "不等式-均值",
+      "problem": "作业 W3 第 1 题",
+      "cause": "C2",
+      "note": "想到的方法太绕",
+      "stage": 1,
+      "fail_count": 0,
+      "due": "2026-10-08",
+      "status": "open",
+      "needs_retag": false,
+      "attention": false,
+      "attempts": [
+        {
+          "date": "2026-10-01",
+          "passed": true,
+          "seconds": null,
+          "note": ""
+        }
+      ],
+      "cause_history": [
+        {
+          "date": "2026-09-29",
+          "from_code": null,
+          "to_code": "C2",
+          "reason": "首次归因",
+          "by": "student"
+        }
+      ]
+    },
+    {
+      "id": "07016",
+      "created": "2026-10-01",
+      "source": "讲义",
+      "topic": "三角-恒等变换",
+      "problem": "讲义 W3 第 6 题",
+      "cause": "C1",
+      "note": "忘了这个公式",
+      "stage": 1,
+      "fail_count": 0,
+      "due": "2026-10-09",
+      "status": "open",
+      "needs_retag": false,
+      "attention": false,
+      "attempts": [
+        {
+          "date": "2026-10-02",
+          "passed": true,
+          "seconds": null,
+          "note": ""
+        }
+      ],
+      "cause_history": [
+        {
+          "date": "2026-10-01",
+          "from_code": null,
+          "to_code": "C1",
+          "reason": "首次归因",
+          "by": "student"
+        }
+      ]
+    },
+    {
+      "id": "07017",
+      "created": "2026-10-01",
+      "source": "作业",
+      "topic": "不等式-均值",
+      "problem": "作业 W3 第 12 题",
+      "cause": "C3",
+      "note": "符号算错",
+      "stage": 1,
+      "fail_count": 0,
+      "due": "2026-10-10",
+      "status": "open",
+      "needs_retag": false,
+      "attention": false,
+      "attempts": [
+        {
+          "date": "2026-10-03",
+          "passed": true,
+          "seconds": 403,
+          "note": ""
+        }
+      ],
+      "cause_history": [
+        {
+          "date": "2026-10-01",
+          "from_code": null,
+          "to_code": "C3",
+          "reason": "首次归因",
+          "by": "student"
+        }
+      ]
+    },
+    {
+      "id": "07018",
+      "created": "2026-10-02",
+      "source": "讲义",
+      "topic": "三角-恒等变换",
+      "problem": "讲义 W3 第 5 题",
+      "cause": "C5",
+      "note": "做得太慢",
+      "stage": 1,
+      "fail_count": 0,
+      "due": "2026-10-10",
+      "status": "open",
+      "needs_retag": false,
+      "attention": false,
+      "attempts": [
+        {
+          "date": "2026-10-03",
+          "passed": true,
+          "seconds": 536,
+          "note": ""
+        }
+      ],
+      "cause_history": [
+        {
+          "date": "2026-10-02",
+          "from_code": null,
+          "to_code": "C5",
+          "reason": "首次归因",
+          "by": "student"
+        }
+      ]
+    }
+  ]
+}

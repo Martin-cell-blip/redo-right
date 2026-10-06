@@ -133,3 +133,42 @@ def export_csv(doc: dict, taxonomy: Taxonomy) -> str:
             }
         )
     return buf.getvalue()
+
+
+# ---------- 家长周报 ----------
+# 三个数字、一句错因、一件事。不出现题目内容，不出现“差/落后/粗心”这类评价词。
+
+_PARENT_ACTION = {
+    "C1": "重做前让孩子先用自己的话讲一遍这个知识点，讲得出来再动笔",
+    "C2": "让孩子先说“这题的信号是什么、该用什么方法”，说完再做",
+    "C3": "重做时请计时，并让孩子每步写出验算；不要在旁边提示",
+    "C4": "提醒孩子做题前把题干条件逐个圈出来",
+    "C5": "重做一律计时，和上次用时比，不比对错",
+    "C6": "做完后对照标准答案，看每一步是否写全，而不只看结果",
+}
+
+
+def parent_digest(summary: dict, taxonomy: Taxonomy) -> str:
+    s = summary
+    name = s["student"]["name"]
+    lines = [f"{name} 本周错题小结（{s['week_start']} ~ {s['week_end']}）", ""]
+    lines.append(f"1. 本周重做 {s['attempts']} 次，做对 {s['passed']} 次，有 {s['active_days']} 天做了重做。")
+    lines.append(f"2. 累计 {s['closed_total']} 道题已经三次做对（闭环），{s['open_total']} 道还在练。")
+    if s["by_cause_failed"]:
+        code, n = max(s["by_cause_failed"].items(), key=lambda kv: (kv[1], kv[0]))
+        c = taxonomy.get(code)
+        lines.append(f"3. 本周最常见的错因：{c.name}（{n} 次）。老师对这类错的练法是：{c.next_step}")
+        action = _PARENT_ACTION.get(code, "照常安排重做时间即可")
+    else:
+        lines.append("3. 本周没有重做失败的记录。")
+        action = "照常安排重做时间即可"
+    if s["needs_retag_ids"]:
+        lines.append(
+            f"4. 有 {len(s['needs_retag_ids'])} 道题两次没做对，老师已收到提醒；孩子需要先想清楚错因再重做，这一步比多做题更重要。"
+        )
+    if s["attempts"] == 0:
+        action = "帮孩子固定一个每周两次、每次 20 分钟的重做时间，比多买一本题更有用"
+    elif s["active_days"] < 2:
+        action = "把重做放进固定时段（比如周三、周日晚），一次 20 分钟"
+    lines += ["", f"您这周能帮的一件事：{action}。"]
+    return "\n".join(lines) + "\n"

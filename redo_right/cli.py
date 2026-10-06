@@ -10,8 +10,10 @@ from pathlib import Path
 from . import __version__
 from .ladder import describe_stage
 from .model import SOURCES
-from .report import export_csv, render_student_report, weekly_summary
+from .classroom import heatmap, load_class, render_heatmap_md, suggestions
+from .report import export_csv, parent_digest, render_student_report, weekly_summary
 from .service import Service, ServiceError
+from .sheets import bill_of_materials, render_bom_md, render_student_sheet, wrap_html
 from .store import StoreError
 from .taxonomy import TaxonomyError, load_taxonomy
 
@@ -86,6 +88,23 @@ def build_parser() -> argparse.ArgumentParser:
     s = sub.add_parser("export", help="导出 CSV（教研/家长可用 Excel 打开）")
     s.add_argument("--out", required=True)
 
+    s = sub.add_parser("parent", help="家长周报（纯文字，三个数字一件事）")
+    s.add_argument("--week-end", type=_parse_date, default=None)
+    s.add_argument("--out", default=None)
+
+    s = sub.add_parser("sheet", help="本学生的重练单（A4 HTML，可直接打印）")
+    s.add_argument("--on", type=_parse_date, default=None, help="打印日期，默认今天")
+    s.add_argument("--out", required=True)
+
+    s = sub.add_parser("class", help="班级视图（一个学生一份 JSON，放在同一文件夹）")
+    s.add_argument("--dir", required=True, help="学生数据文件夹")
+    cs = s.add_subparsers(dest="class_cmd", required=True)
+    c1 = cs.add_parser("heatmap", help="知识点 × 错因热力图 + 教研建议（Markdown）")
+    c1.add_argument("--out", default=None)
+    c2 = cs.add_parser("sheets", help="全班重练单 + 物料清单")
+    c2.add_argument("--on", type=_parse_date, default=None)
+    c2.add_argument("--out-dir", required=True)
+
     sub.add_parser("causes", help="显示错因表")
     return p
 
@@ -109,6 +128,34 @@ def main(argv: list[str] | None = None) -> int:
             tax = load_taxonomy(args.taxonomy) if args.taxonomy else load_taxonomy()
             for c in tax.causes:
                 print(f"{c.code}  {c.name}  —— {c.description}\n     重做前：{c.next_step}")
+            return 0
+        if args.cmd == "class":
+            tax = load_taxonomy(args.taxonomy) if args.taxonomy else load_taxonomy()
+            docs = load_class(args.dir)
+            if args.class_cmd == "heatmap":
+                heat = heatmap(docs)
+                text = render_heatmap_md(heat, suggestions(heat, tax), tax)
+                if args.out:
+                    Path(args.out).write_text(text, encoding="utf-8")
+                    print(f"热力图已写入 {args.out}")
+                else:
+                    print(text, end="")
+                return 0
+            on = args.on or (args.today or date.today())
+            out_dir = Path(args.out_dir)
+            out_dir.mkdir(parents=True, exist_ok=True)
+            bom = bill_of_materials(docs, on)
+            printed = 0
+            for doc in docs:
+                if doc["student"]["name"] in bom["skipped"]:
+                    continue
+                body = render_student_sheet(doc, on, tax)
+                (out_dir / f"重练单_{doc['student']['name']}_{on.isoformat()}.html").write_text(
+                    wrap_html(body, f"{doc['student']['name']} 重练单"), encoding="utf-8"
+                )
+                printed += 1
+            (out_dir / f"物料清单_{on.isoformat()}.md").write_text(render_bom_md(bom), encoding="utf-8")
+            print(f"已生成 {printed} 份重练单，共 {bom['total_pages']} 页，物料清单见 {out_dir}")
             return 0
         svc = _svc(args)
         if args.cmd == "init":
@@ -170,6 +217,24 @@ def main(argv: list[str] | None = None) -> int:
         if args.cmd == "export":
             Path(args.out).write_text(export_csv(svc.document(), svc.taxonomy), encoding="utf-8-sig")
             print(f"已导出 {args.out}")
+            return 0
+        if args.cmd == "parent":
+            week_end = args.week_end or (args.today or date.today())
+            text = parent_digest(weekly_summary(svc.document(), week_end), svc.taxonomy)
+            if args.out:
+                Path(args.out).write_text(text, encoding="utf-8")
+                print(f"家长周报已写入 {args.out}")
+            else:
+                print(text, end="")
+            return 0
+        if args.cmd == "sheet":
+            on = args.on or (args.today or date.today())
+            doc = svc.document()
+            Path(args.out).write_text(
+                wrap_html(render_student_sheet(doc, on, svc.taxonomy), f"{doc['student']['name']} 重练单"),
+                encoding="utf-8",
+            )
+            print(f"重练单已写入 {args.out}")
             return 0
         if args.cmd == "list":
             for m in svc.list(args.status):

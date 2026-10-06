@@ -27,8 +27,31 @@ python -m redo_right redo <id> --pass            # 或 --fail，可加 --seconds
 python -m redo_right retag <id> --cause C2 --reason "其实是没想到换元"   # 累计两次做错后必须先做这步
 python -m redo_right report --week-end 2026-10-12  # 学生周报（Markdown）
 python -m redo_right export --out mistakes.csv     # 给教研/家长的 CSV
+python -m redo_right parent --week-end 2026-10-12  # 家长周报（纯文字）
+python -m redo_right sheet --on 2026-10-09 --out 重练单.html   # A4 可打印
 python -m redo_right list --status open
+
+# 班级：一个学生一份 JSON，放同一文件夹
+python -m redo_right class --dir examples/demo_class heatmap --out 热力图.md
+python -m redo_right class --dir examples/demo_class sheets --on 2026-10-05 --out-dir out/sheets
 ```
+
+## 三个人各看一样东西
+
+| 谁 | 看什么 | 命令 | 设计约束 |
+|---|---|---|---|
+| 学生 | 今天该重做什么；本周有没有变好 | `due` / `report` | 二次错的题单列，先归因再重做 |
+| 家长 | 三个数字、一句错因、一件能帮的事 | `parent` | 不出现题目内容，不出现评价词 |
+| 教研 / 老师 | 知识点 × 错因热力图；讲义该改哪一节；本周要看哪些题 | `class heatmap` | 知识点 ≥ 3 道且主导错因 ≥ 40% 才出建议 |
+
+## 物料：重练单
+
+重做发生在纸上。`sheet` / `class sheets` 生成 A4 重练单：每道题印“知识点 · 题目引用 · 重做前先做的一件事 · 作答区 · □对 □错 用时”，二次错的题变成归因单。
+`class sheets` 同时产出**物料清单**：每页 3 道，按学生算页数、总页数、双面张数、无需打印名单，以及发放核对要求——缺页错发在工具里不留痕，必须在发放时拦住。
+
+## 演示数据
+
+`examples/demo_class/` 是 **合成** 演示班级（12 人 × 3 周，`tools/make_demo_class.py`，seed 固定，只通过产品自己的 Service 生成，因此服从全部产品规则）。它用来演示热力图与物料清单长什么样，不是真实学生，不能作为效果证据。
 
 ## 两条写进代码的产品规则
 
