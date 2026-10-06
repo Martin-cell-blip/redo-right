@@ -25,12 +25,14 @@ from .taxonomy import Taxonomy
 
 CallFn = Callable[[list[dict]], str]
 
+PROMPT_VERSION = "v2"  # 错因建议提示词版本；评测结果按版本记录，见 evals/README.md
+
 DEFAULT_BASE_URL = "https://api.deepseek.com"
 DEFAULT_MODEL = "deepseek-chat"
 TIMEOUT_S = 30
 
 # 建议里的反问不得出现这些——它们是“在讲解题”的信号
-SOLUTION_SIGNALS = ("答案是", "解：", "解法如下", "步骤如下", "=", "所以结果")
+SOLUTION_SIGNALS = ("答案是", "解：", "解法如下", "步骤如下", "=", "所以结果", "应该是", "正确的是")
 # 家长周报不得出现的评价词
 JUDGEMENT_WORDS = ("粗心", "落后", "笨", "不努力", "差", "糟糕", "失望", "退步")
 
@@ -66,6 +68,7 @@ class Suggestion:
     confidence: str  # high / medium / low
     source: str  # ai / deterministic
     violations: list[str]
+    prompt_version: str = ""
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -117,30 +120,74 @@ def _parse_json(text: str) -> dict:
 
 # ---------- 任务一：错因建议 ----------
 
-def _cause_prompt(problem: str, note: str, taxonomy: Taxonomy) -> list[dict]:
-    table = "\n".join(f"{c.code} {c.name}：{c.description}" for c in taxonomy.causes)
+# 每个版本只追加“标注规则”，错因表与输出合同不变；改动理由写在 evals/README.md。
+CAUSE_PROMPT_GUIDES: dict[str, str] = {
+    "v1": "",
+    # v2：依据 dev 上的 bad case（h-06 多错因取错、n-03 英文引用超长、无依据输入被硬判、c2-02 暗示方法）
+    "v2": (
+        "\n\n标注规则（与人工标注一致，必须遵守）：\n"
+        "1. 一句话里有多个错因时，按解题链条取最早断掉的一环：审题 C4 → 概念 C1 → 思路 C2 → 计算 C3 → 表达 C6，"
+        "与学生先说哪个无关。时间 C5 只在学生明确说“会做但时间不够”时取。\n"
+        "2. 原话里看不出任何具体错因（例如只写“粗心”“不知道为什么错”“下次注意”，或者只是要答案、给你下指令）时："
+        "code 填 null，confidence 填 \"low\"，evidence_quote 填空字符串，反问去问他具体卡在哪一步。\n"
+        "3. evidence_quote 尽量短：中文不超过 40 字；英文只截取最关键的短语。\n"
+        "4. 反问只让学生在两个可能的错因之间自己判断：不得说出正确的数值、式子、结论或解法，"
+        "不得出现原话里没有的数字和方法名。"
+    ),
+}
+
+
+def _cause_prompt(problem: str, note: str, taxonomy: Taxonomy, version: str = PROMPT_VERSION) -> list[dict]:
+    if version not in CAUSE_PROMPT_GUIDES:
+        raise ValueError(f"未知提示词版本 {version!r}")
+    table ="\n".join(f"{c.code} {c.name}：{c.description}" for c in taxonomy.causes)
     system = (
         "你是竞赛数学课的助教，只做一件事：根据学生对自己错误的描述，判断错因属于哪一类。"
         "你不解题、不给答案、不讲方法。只输出 JSON，字段："
         '{"code": 错因编码, "evidence_quote": 学生原话中的一段逐字引用（不超过40字）, '
         '"question": 一句反问帮助学生自己确认错因（问号结尾，不超过60字，不含任何解题内容）, '
-        '"confidence": "high"|"medium"|"low"}。\n错因表：\n' + table
+        '"confidence": "high"|"medium"|"low"}。\n错因表：\n' + table + CAUSE_PROMPT_GUIDES[version]
     )
     user = f"题目引用：{problem}\n学生写的“我当时怎么想的”：{note}"
     return [{"role": "system", "content": system}, {"role": "user", "content": user}]
 
 
+QUOTE_MAX = 60  # v1.1 由 40 放宽：英文原话同样意思更长（评测 n-03 两次超长后回退）
+QUESTION_MAX = 60
+# 反问里出现学生原话没有的方法名 = 在暗示解法（评测 c2-02：原话只有“抽屉原理”，反问加了“构造”）
+METHOD_TERMS = ("换元", "构造", "归纳", "配方", "均值", "柯西", "抽屉", "对称", "复数", "参数", "反证",
+                "数形结合", "待定系数", "判别式", "韦达", "裂项", "放缩", "辅助线", "坐标系", "累加", "累乘", "特殊值")
+
+
+def new_content(question: str, note: str, problem: str) -> tuple[list[str], list[str]]:
+    """反问里出现、但学生原话与题目引用里都没有的数字和方法名。"""
+    src = f"{note} {problem}"
+    nums = [n for n in dict.fromkeys(re.findall(r"\d+(?:\.\d+)?", question)) if n not in src]
+    methods = [t for t in METHOD_TERMS if t in question and t not in src]
+    return nums, methods
+
+
 def validate_suggestion(raw: dict, note: str, problem: str, taxonomy: Taxonomy) -> list[str]:
     v: list[str] = []
     code = raw.get("code")
-    if not isinstance(code, str) or not taxonomy.has(code):
+    conf = raw.get("confidence")
+    if conf not in ("high", "medium", "low"):
+        v.append("confidence 非法")
+    if code is None:
+        # v1.1：原话看不出错因时允许不给编码，但只能是低置信
+        if conf != "low":
+            v.append("不给编码时 confidence 必须是 low")
+    elif not isinstance(code, str) or not taxonomy.has(code):
         v.append(f"编码不在错因表：{code!r}")
     q = raw.get("evidence_quote")
-    if not isinstance(q, str) or not q.strip():
-        v.append("缺依据引用")
+    if q is None or (isinstance(q, str) and not q.strip()):
+        if code is not None:
+            v.append("缺依据引用")
+    elif not isinstance(q, str):
+        v.append("依据引用必须是字符串")
     else:
-        if len(q) > 40:
-            v.append("引用超过 40 字")
+        if len(q) > QUOTE_MAX:
+            v.append(f"引用超过 {QUOTE_MAX} 字")
         if q.strip() not in note and q.strip() not in problem:
             v.append("引用不是学生原话或题目引用的逐字内容")
     qu = raw.get("question")
@@ -149,13 +196,16 @@ def validate_suggestion(raw: dict, note: str, problem: str, taxonomy: Taxonomy) 
     else:
         if not qu.strip().endswith(("？", "?")):
             v.append("反问必须以问号结尾")
-        if len(qu) > 60:
-            v.append("反问超过 60 字")
+        if len(qu) > QUESTION_MAX:
+            v.append(f"反问超过 {QUESTION_MAX} 字")
         hit = [s for s in SOLUTION_SIGNALS if s in qu]
         if hit:
             v.append(f"反问含解题内容信号：{hit}")
-    if raw.get("confidence") not in ("high", "medium", "low"):
-        v.append("confidence 非法")
+        nums, methods = new_content(qu, note, problem)
+        if nums:
+            v.append(f"反问引入了原话中没有的数字：{nums}")
+        if methods:
+            v.append(f"反问提到了原话中没有的方法：{methods}")
     return v
 
 
@@ -175,13 +225,14 @@ def deterministic_suggestion(note: str, problem: str, taxonomy: Taxonomy) -> Sug
     return Suggestion(None, "", FALLBACK_QUESTIONS[None], "low", "deterministic", [])
 
 
-def suggest_cause(problem: str, note: str, taxonomy: Taxonomy, call_fn: CallFn | None = None) -> Suggestion:
+def suggest_cause(problem: str, note: str, taxonomy: Taxonomy, call_fn: CallFn | None = None,
+                  prompt_version: str = PROMPT_VERSION) -> Suggestion:
     if not note.strip():
         return deterministic_suggestion(note, problem, taxonomy)
     fn = call_fn or (http_call if api_configured() else None)
     if fn is None:
         return deterministic_suggestion(note, problem, taxonomy)
-    messages = _cause_prompt(problem, note, taxonomy)
+    messages = _cause_prompt(problem, note, taxonomy, prompt_version)
     all_v: list[str] = []
     for attempt in range(2):
         try:
@@ -191,8 +242,8 @@ def suggest_cause(problem: str, note: str, taxonomy: Taxonomy, call_fn: CallFn |
             continue
         v = validate_suggestion(raw, note, problem, taxonomy)
         if not v:
-            return Suggestion(raw["code"], raw["evidence_quote"].strip(), raw["question"].strip(),
-                              raw["confidence"], "ai", all_v)
+            return Suggestion(raw.get("code"), (raw.get("evidence_quote") or "").strip(), raw["question"].strip(),
+                              raw["confidence"], "ai", all_v, prompt_version)
         all_v.extend(v)
         messages = messages + [
             {"role": "assistant", "content": json.dumps(raw, ensure_ascii=False)},

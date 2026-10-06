@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import functools
 import uuid
 from datetime import date
 from pathlib import Path
@@ -35,6 +36,43 @@ def _default_id() -> str:
     return uuid.uuid4().hex[:8]
 
 
+def _locked(method):
+    """读和写都在文件锁内：读-改-写是一个整体，读也不会撞上别人的 os.replace。"""
+
+    @functools.wraps(method)
+    def wrapper(self, *args, **kwargs):
+        with store.locked(self.path):
+            return method(self, *args, **kwargs)
+
+    return wrapper
+
+
+def due_in(doc: dict, on: date) -> list[Mistake]:
+    out = [
+        m
+        for m in (Mistake.from_dict(x) for x in doc["mistakes"])
+        if m.status == STATUS_OPEN
+        and not m.needs_retag  # 二次错的题先归因，不进重做清单
+        and m.due
+        and date.fromisoformat(m.due) <= on
+    ]
+    out.sort(key=lambda m: (m.due or "", m.created))  # 稳定排序：同一天记的按记录先后
+    return out
+
+
+def retag_in(doc: dict) -> list[Mistake]:
+    return sorted(
+        (m for m in (Mistake.from_dict(x) for x in doc["mistakes"]) if m.status == STATUS_OPEN and m.needs_retag),
+        key=lambda m: (m.created, m.id),
+    )
+
+
+def open_in(doc: dict) -> list[Mistake]:
+    """全部在练：待归因排最前，其余按下次重做日。"""
+    ms = [m for m in (Mistake.from_dict(x) for x in doc["mistakes"]) if m.status == STATUS_OPEN]
+    return sorted(ms, key=lambda m: (not m.needs_retag, m.due or "", m.created))
+
+
 class Service:
     def __init__(
         self,
@@ -53,6 +91,7 @@ class Service:
         self._durable = durable
 
     # ---------- 生命周期 ----------
+    @_locked
     def init(self, student_name: str, grade: str, ladder: list[int] | None = None) -> dict:
         if store.exists(self.path):
             raise ServiceError(f"数据文件已存在：{self.path}")
@@ -81,6 +120,7 @@ class Service:
         raise ServiceError(f"找不到错题 {mistake_id!r}")
 
     # ---------- 核心操作 ----------
+    @_locked
     def add(self, topic: str, cause: str, problem: str, source: str = "作业", note: str = "") -> Mistake:
         if not topic.strip():
             raise ServiceError("知识点不能为空")
@@ -111,27 +151,22 @@ class Service:
         self._write_back(doc, mistakes)
         return m
 
+    @_locked
     def due(self, on: date | None = None) -> list[Mistake]:
-        on = on or self._today()
-        doc = self._load()
-        out = [
-            m
-            for m in self._mistakes(doc)
-            if m.status == STATUS_OPEN
-            and not m.needs_retag  # 二次错的题先归因，不进重做清单
-            and m.due
-            and date.fromisoformat(m.due) <= on
-        ]
-        out.sort(key=lambda m: (m.due or "", m.created))
-        return out
+        return due_in(self._load(), on or self._today())
 
+    @_locked
     def pending_retag(self) -> list[Mistake]:
-        doc = self._load()
-        return sorted(
-            (m for m in self._mistakes(doc) if m.status == STATUS_OPEN and m.needs_retag),
-            key=lambda m: (m.created, m.id),
-        )
+        return retag_in(self._load())
 
+    @_locked
+    def snapshot(self, on: date | None = None) -> dict:
+        """一次加载给网页需要的全部视图，避免同一请求里反复读文件。"""
+        doc = self._load()
+        on = on or self._today()
+        return {"doc": doc, "due": due_in(doc, on), "retag": retag_in(doc), "open": open_in(doc)}
+
+    @_locked
     def redo(self, mistake_id: str, passed: bool, seconds: int | None = None, note: str = "") -> Mistake:
         doc = self._load()
         today = self._today()
@@ -163,6 +198,7 @@ class Service:
         self._write_back(doc, mistakes)
         return m
 
+    @_locked
     def retag(self, mistake_id: str, new_cause: str, reason: str, by: str = "student") -> Mistake:
         """重新归因。允许标回同一编码，但必须写理由——理由本身就是反思。"""
         self.taxonomy.get(new_cause)
@@ -183,6 +219,7 @@ class Service:
         self._write_back(doc, mistakes)
         return m
 
+    @_locked
     def clear_attention(self, mistake_id: str, note: str) -> Mistake:
         """老师处理完（讲过了 / 换题了）后清除关注标记，须留一句处理记录。"""
         if not note.strip():
@@ -195,6 +232,7 @@ class Service:
         self._write_back(doc, mistakes)
         return m
 
+    @_locked
     def archive(self, mistake_id: str, reason: str) -> Mistake:
         if not reason.strip():
             raise ServiceError("归档必须写原因（例如：超纲 / 题目有误 / 老师决定不练）")
@@ -210,6 +248,7 @@ class Service:
         return m
 
     # ---------- AI 建议日志（为“采纳率”留数据） ----------
+    @_locked
     def log_suggestion(self, kind: str, input_sha: str, output: dict, source: str,
                        mistake_id: str | None = None) -> str:
         if kind not in ("cause", "digest"):
@@ -224,20 +263,24 @@ class Service:
         self._save(doc)
         return sid
 
-    def resolve_suggestion(self, sid: str, chosen_code: str) -> bool:
-        """学生最终选了哪个编码；与建议一致记 accepted=True。返回是否一致。"""
+    @_locked
+    def resolve_suggestion(self, sid: str, chosen_code: str) -> bool | None:
+        """学生最终选了哪个编码；与建议一致记 accepted=True。
+        建议本身没给编码（原话看不出错因）时记 None：无从采纳，不计入采纳率。"""
         doc = self._load()
         for e in doc.get("ai_log", []):
             if e["id"] == sid:
                 if e["kind"] != "cause":
                     raise ServiceError(f"{sid} 不是错因建议")
-                accepted = e["output"].get("code") == chosen_code
+                suggested = e["output"].get("code")
+                accepted = None if suggested is None else suggested == chosen_code
                 e["accepted"] = accepted
                 e["chosen_code"] = chosen_code
                 self._save(doc)
                 return accepted
         raise ServiceError(f"找不到建议 {sid!r}")
 
+    @_locked
     def ai_stats(self) -> dict:
         log = self._load().get("ai_log", [])
         cause = [e for e in log if e["kind"] == "cause"]
@@ -255,6 +298,7 @@ class Service:
             "digest_rewrites": sum(1 for e in log if e["kind"] == "digest"),
         }
 
+    @_locked
     def list(self, status: str | None = None) -> list[Mistake]:
         doc = self._load()
         ms = self._mistakes(doc)
@@ -262,5 +306,6 @@ class Service:
             ms = [m for m in ms if m.status == status]
         return sorted(ms, key=lambda m: (m.created, m.id))
 
+    @_locked
     def document(self) -> dict:
         return self._load()

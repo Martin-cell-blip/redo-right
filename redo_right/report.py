@@ -53,10 +53,29 @@ def weekly_summary(doc: dict, week_end: date) -> dict:
         "closure_rate": (len(closed_ms) / tracked) if tracked else None,
         "by_cause_open": dict(Counter(m.cause for m in open_ms)),
         "by_cause_failed": dict(Counter(m.cause for m, a in attempts if not a.passed)),
+        "last_fail_by_cause": _last_fail_by_cause(attempts),
         "needs_retag_ids": [m.id for m in needs_retag],
         "waiting_ids": [m.id for m in waiting],
         "attention_ids": [m.id for m in open_ms if m.attention],
     }
+
+
+def _last_fail_by_cause(attempts) -> dict[str, str]:
+    out: dict[str, str] = {}
+    for m, a in attempts:
+        if not a.passed and a.date > out.get(m.cause, ""):
+            out[m.cause] = a.date
+    return out
+
+
+def top_failed_cause(summary: dict) -> tuple[str, int] | None:
+    """本周最常见的错因；平票时取最近一次失败的那一类，再平才按编码。"""
+    counts = summary["by_cause_failed"]
+    if not counts:
+        return None
+    last = summary.get("last_fail_by_cause", {})
+    code = max(counts, key=lambda c: (counts[c], last.get(c, ""), c))
+    return code, counts[code]
 
 
 def _pct(x: float | None) -> str:
@@ -73,8 +92,8 @@ def render_student_report(summary: dict, taxonomy: Taxonomy, doc: dict) -> str:
         f"- 新记错题 {s['added']} 道；重做 {s['attempts']} 次（做对 {s['passed']}，又错 {s['failed']}）；有重做的天数 {s['active_days']}/7",
         f"- 本周闭环 {s['closed_in_week']} 道；累计闭环率 {_pct(s['closure_rate'])}（闭环 {s['closed_total']} / 在练 {s['open_total']}）",
     ]
-    if s["by_cause_failed"]:
-        top = max(s["by_cause_failed"].items(), key=lambda kv: (kv[1], kv[0]))
+    top = top_failed_cause(s)
+    if top:
         c = taxonomy.get(top[0])
         lines += [
             "",
@@ -154,8 +173,9 @@ def parent_digest(summary: dict, taxonomy: Taxonomy) -> str:
     lines = [f"{name} 本周错题小结（{s['week_start']} ~ {s['week_end']}）", ""]
     lines.append(f"1. 本周重做 {s['attempts']} 次，做对 {s['passed']} 次，有 {s['active_days']} 天做了重做。")
     lines.append(f"2. 累计 {s['closed_total']} 道题已经三次做对（闭环），{s['open_total']} 道还在练。")
-    if s["by_cause_failed"]:
-        code, n = max(s["by_cause_failed"].items(), key=lambda kv: (kv[1], kv[0]))
+    top = top_failed_cause(s)
+    if top:
+        code, n = top
         c = taxonomy.get(code)
         lines.append(f"3. 本周最常见的错因：{c.name}（{n} 次）。老师对这类错的练法是：{c.next_step}")
         action = _PARENT_ACTION.get(code, "照常安排重做时间即可")

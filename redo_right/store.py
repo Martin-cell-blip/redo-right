@@ -11,6 +11,9 @@ from __future__ import annotations
 import json
 import os
 import shutil
+import threading
+import time
+from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
 
@@ -21,6 +24,83 @@ BACKUP_KEEP = 5
 
 class StoreError(ValueError):
     pass
+
+
+class LockTimeout(StoreError):
+    pass
+
+
+# ---------- 文件锁 ----------
+# 同一数据文件同一时刻只允许一个读写者：线程间用可重入锁，进程间用 <file>.lock 独占创建。
+# v1.1 之前没有锁：网页服务的线程池里两个请求同时写，后写的覆盖先写的（实测 16 线程 × 5 次写入只剩 1 条）。
+
+LOCK_TIMEOUT_S = 10.0
+LOCK_STALE_S = 30.0  # 持锁进程崩溃留下的锁文件，超过这个时间视为失效
+_thread_locks: dict[str, threading.RLock] = {}
+_registry_guard = threading.Lock()
+_depth = threading.local()
+
+
+def _lock_key(p: Path) -> str:
+    return os.path.normcase(os.path.abspath(p))
+
+
+def _acquire_lockfile(lp: Path, deadline: float) -> None:
+    while True:
+        try:
+            fd = os.open(lp, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+            os.write(fd, str(os.getpid()).encode())
+            os.close(fd)
+            return
+        except (FileExistsError, PermissionError):
+            try:
+                if time.time() - lp.stat().st_mtime > LOCK_STALE_S:
+                    lp.unlink()
+                    continue
+            except OSError:
+                pass
+            if time.monotonic() > deadline:
+                raise LockTimeout(f"数据文件正被其他程序使用：{lp.with_suffix('')}（稍后再试；若确定没有程序在用，删除 {lp.name}）")
+            time.sleep(0.005)
+
+
+def _release_lockfile(lp: Path) -> None:
+    for _ in range(50):
+        try:
+            lp.unlink()
+            return
+        except FileNotFoundError:
+            return
+        except PermissionError:
+            time.sleep(0.005)
+
+
+@contextmanager
+def locked(path: Path | str, timeout: float = LOCK_TIMEOUT_S):
+    p = Path(path)
+    key = _lock_key(p)
+    with _registry_guard:
+        rl = _thread_locks.setdefault(key, threading.RLock())
+    if not rl.acquire(timeout=timeout):
+        raise LockTimeout(f"数据文件忙：{p}")
+    depths = getattr(_depth, "d", None)
+    if depths is None:
+        depths = _depth.d = {}
+    outer = depths.get(key, 0) == 0
+    lp = p.with_name(p.name + ".lock")
+    try:
+        if outer:
+            p.parent.mkdir(parents=True, exist_ok=True)
+            _acquire_lockfile(lp, time.monotonic() + timeout)
+        depths[key] = depths.get(key, 0) + 1
+        try:
+            yield
+        finally:
+            depths[key] -= 1
+            if outer:
+                _release_lockfile(lp)
+    finally:
+        rl.release()
 
 
 def migrate(doc: dict) -> dict:
@@ -100,13 +180,33 @@ def save(path: Path | str, doc: dict, backup: bool = True, fsync: bool = True) -
     p.parent.mkdir(parents=True, exist_ok=True)
     if backup:
         _backup(p)
-    tmp = p.with_suffix(p.suffix + ".tmp")
-    with open(tmp, "w", encoding="utf-8") as f:
-        json.dump(doc, f, ensure_ascii=False, indent=2)
-        f.flush()
-        if fsync:
-            os.fsync(f.fileno())
-    os.replace(tmp, p)
+    # 临时文件名带进程与线程号：两个写者不会写进同一个临时文件
+    tmp = p.with_name(f"{p.name}.{os.getpid()}.{threading.get_ident()}.tmp")
+    try:
+        with open(tmp, "w", encoding="utf-8") as f:
+            f.write(json.dumps(doc, ensure_ascii=False, indent=2))  # 一次性序列化 + 单次写入；json.dump 逐块流式写入走纯 Python 编码器（实测生成 5 名学生 9.4s → 4.4s）
+            f.flush()
+            if fsync:
+                os.fsync(f.fileno())
+        _replace_with_retry(tmp, p)
+    finally:
+        if tmp.exists():
+            try:
+                tmp.unlink()
+            except OSError:
+                pass
+
+
+def _replace_with_retry(src: Path, dst: Path, attempts: int = 40) -> None:
+    """Windows 下目标文件被其他句柄（杀毒软件、索引、只读的班级视图）短暂打开时 os.replace 会拒绝访问。"""
+    for i in range(attempts):
+        try:
+            os.replace(src, dst)
+            return
+        except PermissionError:
+            if i == attempts - 1:
+                raise StoreError(f"写入失败：{dst} 被其他程序占用")
+            time.sleep(0.01)
 
 
 def exists(path: Path | str) -> bool:

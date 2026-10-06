@@ -184,7 +184,8 @@ def main(argv: list[str] | None = None) -> int:
             print(f"已记录 {m.id}，下次重做 {m.due}。重做前先：{cause.next_step}")
             if args.suggestion:
                 ok = svc.resolve_suggestion(args.suggestion, args.cause)
-                print("（采纳了 AI 建议）" if ok else "（没有采纳 AI 建议，已记录）")
+                if ok is not None:
+                    print("（采纳了 AI 建议）" if ok else "（没有采纳 AI 建议，已记录）")
             return 0
         if args.cmd == "suggest":
             sg = suggest_cause(args.problem, args.note, svc.taxonomy)

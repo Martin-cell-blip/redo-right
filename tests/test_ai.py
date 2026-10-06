@@ -43,7 +43,7 @@ def test_compliant_output_passes():
 @pytest.mark.parametrize("bad, msg", [
     ({"code": "C9"}, "编码不在错因表"),
     ({"evidence_quote": "学生说他没想到换元法"}, "逐字"),
-    ({"evidence_quote": "x" * 41}, "40 字"),
+    ({"evidence_quote": "x" * 61}, "60 字"),
     ({"question": "你应该先换元再算。"}, "问号结尾"),
     ({"question": "设 t=x+1，答案是 3，对吗？"}, "解题内容"),
     ({"question": "你" * 61 + "？"}, "60 字"),

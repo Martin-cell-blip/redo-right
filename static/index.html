@@ -2,214 +2,549 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#f6f1e6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#14171d" media="(prefers-color-scheme: dark)">
 <title>再做对</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='4' y='4' width='56' height='56' rx='6' fill='%23c23b22'/%3E%3Ctext x='32' y='45' font-size='34' text-anchor='middle' fill='%23fff' font-family='serif'%3E再%3C/text%3E%3C/svg%3E">
 <style>
 :root{
-  --paper:#f7f2e8; --grid:rgba(31,42,68,.09); --ink:#1f2a44; --ink-2:#55607a;
-  --vermilion:#c23b22; --moss:#2e6b4f; --card:#fffdf8;
-  --display:"Noto Serif SC","Songti SC","STSong","SimSun",serif;
-  --body:"PingFang SC","Microsoft YaHei","Noto Sans SC","Source Han Sans SC",sans-serif;
+  --paper:#f6f1e6; --grid:rgba(31,42,68,.08); --ink:#1f2a44; --ink-2:#56607a; --line:rgba(31,42,68,.26);
+  --red:#c23b22; --red-soft:#fbeae5; --green:#2e6b4f; --green-soft:#e6f1ea; --on-accent:#fff;
+  --card:#fffdf8; --field:#fff; --shadow:#1f2a44;
+  --display:"Noto Serif SC","Source Han Serif SC","Songti SC","STSong","SimSun",serif;
+  --body:"PingFang SC","Microsoft YaHei UI","Microsoft YaHei","Noto Sans SC","Source Han Sans SC",sans-serif;
+  --num:"Iowan Old Style","Palatino Linotype","Book Antiqua",Palatino,Georgia,serif;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --paper:#14171d; --grid:rgba(233,227,213,.045); --ink:#e9e3d5; --ink-2:#a8a698; --line:rgba(233,227,213,.22);
+    --red:#ef6a4f; --red-soft:rgba(239,106,79,.13); --green:#62b58c; --green-soft:rgba(98,181,140,.13); --on-accent:#10131a;
+    --card:#1c2028; --field:#151920; --shadow:#000;
+  }
 }
 *{box-sizing:border-box}
-body{margin:0;color:var(--ink);font-family:var(--body);line-height:1.55;
-  background:var(--paper) repeating-linear-gradient(0deg,transparent 0 23px,var(--grid) 23px 24px)}
-.wrap{max-width:720px;margin:0 auto;padding:22px 16px 72px}
-header{display:flex;align-items:flex-end;justify-content:space-between;border-bottom:2px solid var(--ink);padding-bottom:10px;margin-bottom:10px}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;color:var(--ink);font-family:var(--body);line-height:1.55;font-size:15px;
+  background:var(--paper) repeating-linear-gradient(0deg,transparent 0 23px,var(--grid) 23px 24px);min-height:100vh}
+.wrap{max-width:760px;margin:0 auto;padding:22px 16px calc(80px + env(safe-area-inset-bottom))}
+header{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;border-bottom:2px solid var(--ink);padding-bottom:10px;margin-bottom:10px}
 h1{font-family:var(--display);font-weight:700;font-size:34px;margin:0;letter-spacing:.08em;line-height:1}
-h1 small{display:block;font-family:var(--body);font-weight:400;font-size:11px;letter-spacing:.32em;color:var(--ink-2);margin-bottom:8px}
-.stamp{font-family:var(--display);border:3px double var(--vermilion);color:var(--vermilion);padding:3px 10px;font-size:13px;letter-spacing:.22em;transform:rotate(-6deg);white-space:nowrap}
-.meta{font-size:13px;color:var(--ink-2);margin-bottom:22px}
-section{background:var(--card);border:1.5px solid var(--ink);box-shadow:4px 4px 0 var(--ink);padding:16px;margin-bottom:22px;opacity:0;animation:rise .45s ease forwards}
-section:nth-of-type(1){animation-delay:.02s} section:nth-of-type(2){animation-delay:.09s} section:nth-of-type(3){animation-delay:.16s}
-section:nth-of-type(4){animation-delay:.23s} section:nth-of-type(5){animation-delay:.30s} section:nth-of-type(6){animation-delay:.37s}
-h2{font-family:var(--display);font-size:18px;margin:0 0 12px;display:flex;align-items:baseline;gap:10px}
+h1 small{display:block;font-family:var(--body);font-weight:400;font-size:11px;letter-spacing:.32em;color:var(--ink-2);margin-bottom:8px;white-space:nowrap}
+.stamp{font-family:var(--display);border:3px double var(--red);color:var(--red);padding:3px 10px;font-size:13px;letter-spacing:.22em;transform:rotate(-6deg);white-space:nowrap}
+.meta{font-size:13px;color:var(--ink-2);margin-bottom:22px;min-height:20px}
+section{background:var(--card);border:1.5px solid var(--ink);box-shadow:4px 4px 0 var(--shadow);padding:16px;margin-bottom:22px}
+.rise{animation:rise .4s ease both}
+h2{font-family:var(--display);font-size:18px;margin:0 0 12px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
 h2 .n{font-family:var(--body);font-weight:400;font-size:12px;color:var(--ink-2)}
 .nums{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
 .num{border-left:3px solid var(--ink);padding-left:10px}
-.num b{display:block;font-family:var(--display);font-size:28px;line-height:1.05}
+.num b{display:block;font-family:var(--num);font-weight:700;font-size:30px;line-height:1.05;font-variant-numeric:lining-nums}
+.num b small{font-size:15px;font-weight:400;color:var(--ink-2)}
 .num span{font-size:12px;color:var(--ink-2)}
-.item{border-top:1px dashed rgba(31,42,68,.3);padding:14px 0 6px}
-.item:first-child{border-top:0;padding-top:4px}
-.item .t{font-weight:600}
-.item .p{color:var(--ink-2);font-size:14px}
-.tag{display:inline-block;font-size:11px;border:1px solid var(--ink);padding:0 6px;margin-left:6px;vertical-align:middle;line-height:1.6}
-.tag.v{border-color:var(--vermilion);color:var(--vermilion)}
-.step{background:var(--paper);border-left:3px solid var(--vermilion);padding:6px 10px;margin:8px 0;font-size:14px}
+.num.alert{border-color:var(--red)} .num.alert b{color:var(--red)}
+.item{border-top:1px dashed var(--line);padding:14px 0 8px}
+.item:first-of-type{border-top:0;padding-top:2px}
+.item-head{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px}
+.topic{font-weight:650;font-size:16px}
+.ref{color:var(--ink-2);font-size:14px;margin-top:2px}
+.late{color:var(--red)}
+.tag{display:inline-flex;align-items:center;font-size:11.5px;border:1px solid var(--ink);padding:0 6px;line-height:1.7;white-space:nowrap}
+.tag.v{border-color:var(--red);color:var(--red)}
+.dots{display:inline-flex;gap:4px;align-items:center;padding:0 2px}
+.dots i{width:10px;height:10px;border:1.5px solid var(--ink);border-radius:50%;display:block}
+.dots i.on{background:var(--green);border-color:var(--green)}
+.step{background:var(--paper);border-left:3px solid var(--red);padding:7px 10px;margin:9px 0 4px;font-size:14px}
+.step b{font-weight:600;margin-right:4px}
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px}
-.row>input,.row>select{flex:1;min-width:120px}
-button{font-family:var(--body);font-size:14px;border:1.5px solid var(--ink);background:var(--card);color:var(--ink);padding:8px 14px;cursor:pointer;box-shadow:2px 2px 0 var(--ink);transition:transform .08s,box-shadow .08s}
-button:active{transform:translate(2px,2px);box-shadow:0 0 0 var(--ink)}
-button.ok{background:var(--moss);border-color:var(--moss);color:#fff}
-button.bad{background:var(--vermilion);border-color:var(--vermilion);color:#fff}
+.row>input,.row>select{flex:1 1 140px;min-width:0}
+.row>.grow{flex:2 1 200px}
+button{font-family:var(--body);font-size:14px;border:1.5px solid var(--ink);background:var(--card);color:var(--ink);padding:0 14px;min-height:40px;cursor:pointer;
+  box-shadow:2px 2px 0 var(--shadow);transition:transform .08s,box-shadow .08s,opacity .15s;touch-action:manipulation}
+button:active:not(:disabled){transform:translate(2px,2px);box-shadow:0 0 0 var(--shadow)}
+button.ok{background:var(--green);border-color:var(--green);color:var(--on-accent)}
+button.bad{background:var(--red);border-color:var(--red);color:var(--on-accent)}
 button.ghost{box-shadow:none;border-style:dashed}
-button:disabled{opacity:.45;cursor:not-allowed}
-input,select,textarea{font-family:var(--body);font-size:14px;padding:8px;border:1.5px solid var(--ink);background:#fff;width:100%;color:var(--ink)}
-textarea{min-height:64px;resize:vertical}
-label{font-size:12px;color:var(--ink-2);display:block;margin-top:10px}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.empty{color:var(--ink-2);font-style:italic;margin:0}
-.suggest{border:1.5px dashed var(--vermilion);padding:10px 12px;margin-top:10px;font-size:14px;background:#fff}
-.suggest q{color:var(--vermilion)}
-pre{white-space:pre-wrap;font-family:var(--body);font-size:14px;background:var(--paper);padding:12px;border:1px solid var(--grid);margin:10px 0 0}
-.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;max-width:90vw}
-.toast.show{opacity:1}
-footer{font-size:12px;color:var(--ink-2);text-align:center}
-@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-@media (max-width:520px){.nums{grid-template-columns:1fr 1fr}.num b{font-size:24px}h1{font-size:28px}.grid2{grid-template-columns:1fr}}
+button.link{border:0;box-shadow:none;background:none;color:var(--ink-2);text-decoration:underline;text-underline-offset:3px;padding:0 4px;min-height:32px}
+button.timer{font-variant-numeric:tabular-nums;min-width:112px}
+button.timer.running{border-color:var(--red);color:var(--red);box-shadow:none}
+button:disabled{opacity:.5;cursor:not-allowed}
+button[aria-busy="true"]{cursor:progress}
+input,select,textarea{font-family:var(--body);font-size:15px;padding:8px 10px;border:1.5px solid var(--ink);background:var(--field);color:var(--ink);width:100%;border-radius:0;min-height:40px}
+textarea{min-height:68px;resize:vertical;line-height:1.5}
+::placeholder{color:var(--ink-2);opacity:.75}
+:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+label{font-size:12px;color:var(--ink-2);display:block;margin:10px 0 3px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
+.empty{color:var(--ink-2);margin:0}
+.empty b{color:var(--ink);font-weight:600}
+.hint{font-size:12px;color:var(--ink-2);margin-top:6px}
+.sugg{border:1.5px dashed var(--red);padding:10px 12px;margin-top:10px;font-size:14px;background:var(--field)}
+.sugg q{color:var(--red)}
+.sugg .src{font-size:11px;color:var(--ink-2);margin-left:6px}
+details>summary{list-style:none;cursor:pointer}
+details>summary::-webkit-details-marker{display:none}
+details>summary h2{margin:0}
+details>summary h2::after{content:"展开";font-family:var(--body);font-size:12px;font-weight:400;color:var(--ink-2);margin-left:auto;text-decoration:underline;text-underline-offset:3px}
+details[open]>summary h2::after{content:"收起"}
+details[open]>summary{margin-bottom:10px}
+.orow{display:grid;grid-template-columns:1fr auto;gap:2px 12px;padding:9px 0;border-top:1px dashed var(--line);align-items:center}
+.orow:first-child{border-top:0}
+.orow .o-main{min-width:0}
+.orow .o-main .ref{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.orow .o-meta{display:flex;gap:8px;align-items:center;justify-content:flex-end;flex-wrap:wrap}
+.when{font-size:13px;font-variant-numeric:tabular-nums;color:var(--ink-2);min-width:64px;text-align:right}
+.when.today{color:var(--ink);font-weight:600} .when.late{color:var(--red);font-weight:600}
+.o-archive{grid-column:1/-1;display:flex;gap:8px;margin-top:6px}
+.o-archive input{flex:1}
+pre{white-space:pre-wrap;font-family:var(--body);font-size:14px;background:var(--paper);padding:12px;border:1px solid var(--line);margin:10px 0 0;max-height:420px;overflow:auto}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translate(-50%,8px);background:var(--ink);color:var(--paper);padding:10px 16px;font-size:14px;
+  opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;max-width:min(92vw,560px);box-shadow:3px 3px 0 var(--red);z-index:20}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.toast.bad{background:var(--red);color:var(--on-accent);box-shadow:3px 3px 0 var(--shadow)}
+.seal{position:fixed;inset:0;display:grid;place-items:center;pointer-events:none;z-index:30}
+.seal span{font-family:var(--display);font-weight:700;font-size:44px;letter-spacing:.2em;color:var(--red);border:6px double var(--red);padding:10px 22px 10px 32px;
+  background:color-mix(in srgb,var(--card) 80%,transparent);animation:seal 1.3s cubic-bezier(.2,1.4,.4,1) both}
+.err{border-color:var(--red)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+footer{font-size:12px;color:var(--ink-2);text-align:center;line-height:1.8}
+kbd{font-family:var(--body);font-size:11px;border:1px solid var(--line);padding:0 4px}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes seal{0%{opacity:0;transform:scale(2.2) rotate(-14deg)}35%{opacity:1;transform:scale(.96) rotate(-8deg)}70%{opacity:1;transform:scale(1) rotate(-8deg)}100%{opacity:0;transform:scale(1) rotate(-8deg)}}
+@media (max-width:560px){
+  .nums{grid-template-columns:1fr 1fr}.num b{font-size:26px}h1{font-size:28px}h1 small{letter-spacing:.16em}.stamp{font-size:12px;letter-spacing:.12em;padding:2px 7px}.grid2{grid-template-columns:1fr}
+  button{min-height:44px} .orow{grid-template-columns:1fr} .orow .o-meta{justify-content:flex-start}.when{text-align:left;min-width:0}
+}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
     <h1><small>错题闭环 · REDO RIGHT</small>再做对</h1>
-    <div class="stamp">隔天 · 一周 · 三周</div>
+    <div class="stamp" aria-hidden="true">隔天 · 一周 · 三周</div>
   </header>
-  <div class="meta" id="meta">载入中…</div>
-  <div id="app"></div>
-  <footer>一道错题不算改过了，直到它在三个间隔点上都被重新做对。</footer>
-</div>
-<div class="toast" id="toast"></div>
-<script>
-const $ = s => document.querySelector(s);
-const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-let S = null;
-const pending = {};           // 建议编号缓存：key → suggestion id
-
-async function api(path, body) {
-  const r = await fetch(path, body ? {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)} : undefined);
-  const ct = r.headers.get('content-type') || '';
-  const data = ct.includes('json') ? await r.json() : await r.text();
-  if (!r.ok) throw new Error((data && data.error) || data || ('HTTP ' + r.status));
-  return data;
-}
-function toast(msg, bad) { const t = $('#toast'); t.textContent = msg; t.style.background = bad ? 'var(--vermilion)' : 'var(--ink)'; t.classList.add('show'); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), 2400); }
-async function act(fn, okMsg) { try { await fn(); if (okMsg) toast(okMsg); await load(); } catch (e) { toast(e.message, true); } }
-async function load() { S = await api('/api/state'); render(); }
-
-function causeOptions(sel) {
-  return S.causes.map(c => `<option value="${c.code}" ${c.code === sel ? 'selected' : ''}>${c.code} ${esc(c.name)}</option>`).join('');
-}
-function pct(x) { return x == null ? '—' : Math.round(x * 100) + '%'; }
-
-function render() {
-  if (!S.initialized) {
-    $('#meta').textContent = '还没有学生档案。';
-    $('#app').innerHTML = `
-      <section><h2>建立档案</h2>
-        <div class="grid2"><div><label>学生</label><input id="i-name" placeholder="姓名"></div><div><label>年级</label><input id="i-grade" placeholder="高一"></div></div>
-        <div class="row"><button class="ok" onclick="initDoc()">开始</button></div>
-      </section>`;
-    return;
-  }
-  const w = S.week, st = S.student;
-  $('#meta').textContent = `${st.name} · ${st.grade} · 今天 ${S.today} · 阶梯 ${S.ladder.join(' / ')} 天${S.ai_enabled ? ' · AI 建议已开' : ''}`;
-  const retag = S.retag.map(m => `
-    <div class="item">
-      <div class="t">${esc(m.topic)} <span class="tag v">${esc(m.cause)} ${esc(m.cause_name)}</span> <span class="tag">错 ${m.fail_count} 次</span></div>
-      <div class="p">${esc(m.problem)}</div>
-      <div class="step">这道题两次没做对。先写一句：这次想清楚了，错在哪一类？为什么？</div>
-      <textarea id="rr-${m.id}" placeholder="我这次想清楚了……"></textarea>
-      <div class="row">
-        <select id="rc-${m.id}">${causeOptions(m.cause)}</select>
-        ${S.ai_enabled || true ? `<button class="ghost" onclick="suggestFor('${m.id}')">AI 建议错因</button>` : ''}
-        <button class="ok" onclick="doRetag('${m.id}')">确认归因</button>
+  <div class="meta" id="meta" aria-live="polite">载入中…</div>
+  <main id="app">
+    <section id="s-init" hidden>
+      <h2>建立档案</h2>
+      <div class="grid2">
+        <div><label for="i-name">学生</label><input id="i-name" autocomplete="off" placeholder="姓名"></div>
+        <div><label for="i-grade">年级</label><input id="i-grade" autocomplete="off" placeholder="高一"></div>
       </div>
-      <div id="rs-${m.id}"></div>
-    </div>`).join('');
-  const due = S.due.map(m => `
-    <div class="item">
-      <div class="t">${esc(m.topic)} <span class="tag">${esc(m.cause)} ${esc(m.cause_name)}</span> <span class="tag">${esc(m.stage_text)}</span></div>
-      <div class="p">${esc(m.problem)}${m.due < S.today ? ` · <span style="color:var(--vermilion)">到期 ${m.due}</span>` : ''}</div>
-      <div class="step">重做前先：${esc(m.next_step)}</div>
-      <div class="row">
-        ${m.redo_mode === 'timed' ? `<input id="sec-${m.id}" type="number" min="0" placeholder="用时（秒）· 本题限时" style="max-width:170px">` : ''}
-        <input id="nt-${m.id}" placeholder="这次怎么想的（选填）">
-      </div>
-      <div class="row">
-        <button class="ok" onclick="redo('${m.id}', true)">做对了</button>
-        <button class="bad" onclick="redo('${m.id}', false)">又错了</button>
-      </div>
-    </div>`).join('');
-  $('#app').innerHTML = `
-    <section>
-      <h2>本周 <span class="n">${w.week_start} ~ ${w.week_end}</span></h2>
-      <div class="nums">
-        <div class="num"><b>${pct(w.closure_rate)}</b><span>累计闭环率 · ${w.closed_total}/${w.closed_total + w.open_total}</span></div>
-        <div class="num"><b>${w.attempts}</b><span>本周重做 · 做对 ${w.passed}</span></div>
-        <div class="num"><b>${w.active_days}<small style="font-size:14px">/7</small></b><span>有重做的天数</span></div>
-        <div class="num"><b style="color:${S.retag.length ? 'var(--vermilion)' : 'inherit'}">${S.retag.length}</b><span>两次没做对</span></div>
-      </div>
+      <div class="row"><button class="ok" data-act="init">开始</button></div>
     </section>
-    ${S.retag.length ? `<section><h2>先重新归因 <span class="n">${S.retag.length} 道</span></h2>${retag}</section>` : ''}
-    <section>
-      <h2>今天到期 <span class="n">${S.due.length} 道</span></h2>
-      ${due || '<p class="empty">今天没有到期的错题。</p>'}
+    <section id="s-error" hidden class="err">
+      <h2>没有连上</h2>
+      <p class="empty" id="err-msg"></p>
+      <div class="row"><button data-act="reload">重试</button></div>
     </section>
-    <section>
+    <section id="s-week" hidden></section>
+    <section id="s-retag" hidden></section>
+    <section id="s-due" hidden></section>
+    <section id="s-add" hidden>
       <h2>记一道错题 <span class="n">20 秒 · 只记引用，不抄题，不写答案</span></h2>
       <div class="grid2">
-        <div><label>知识点</label><input id="a-topic" placeholder="数列-递推"></div>
-        <div><label>来源</label><select id="a-source">${S.sources.map(s => `<option>${s}</option>`).join('')}</select></div>
+        <div><label for="a-topic">知识点</label><input id="a-topic" autocomplete="off" placeholder="数列-递推"></div>
+        <div><label for="a-source">来源</label><select id="a-source"></select></div>
       </div>
-      <label>题目引用</label><input id="a-problem" placeholder="讲义 L3 例 4 / 作业 2 第 5 题">
-      <label>我当时怎么想的</label><textarea id="a-note" placeholder="没想到要构造等比数列，第三步符号还算错了"></textarea>
-      <div class="row">
-        <select id="a-cause">${causeOptions('')}</select>
-        <button class="ghost" onclick="suggestNew()">AI 建议错因</button>
-        <button class="ok" onclick="addNew()">记下</button>
+      <label for="a-problem">题目引用</label><input id="a-problem" autocomplete="off" placeholder="讲义 L3 例 4 / 作业 2 第 5 题">
+      <label for="a-note">我当时怎么想的 <span class="n">（写一句，建议错因要靠它）</span></label>
+      <textarea id="a-note" placeholder="没想到要构造等比数列，第三步符号还算错了"></textarea>
+      <label for="a-cause">错因</label>
+      <div class="row" style="margin-top:0">
+        <select id="a-cause" class="grow"></select>
+        <button class="ghost" data-act="suggest-add" id="btn-suggest-add">建议错因</button>
+        <button class="ok" data-act="add">记下</button>
       </div>
-      <div id="a-sugg"></div>
+      <div id="sugg-new"></div>
+      <div class="hint"><kbd>Ctrl</kbd> + <kbd>Enter</kbd> 直接记下</div>
     </section>
-    <section>
-      <h2>周报</h2>
+    <section id="s-open" hidden>
+      <details id="open-details">
+        <summary><h2>在练 <span class="n" id="open-n"></span></h2></summary>
+        <div id="open-list"></div>
+      </details>
+    </section>
+    <section id="s-report" hidden>
+      <h2>周报与重练单</h2>
       <div class="row">
-        <button onclick="showReport('/api/report/weekly')">学生周报</button>
-        <button onclick="showReport('/api/report/parent')">家长周报</button>
-        <button class="ghost" onclick="showReport('/api/report/parent?ai=1')">家长周报 · AI 措辞</button>
-        <button class="ghost" id="copy" onclick="copyReport()" disabled>复制</button>
+        <button data-act="report" data-path="/api/report/weekly">学生周报</button>
+        <button data-act="report" data-path="/api/report/parent">家长周报</button>
+        <button class="ghost" data-act="report" data-path="/api/report/parent?ai=1" id="btn-parent-ai" hidden>家长周报 · AI 措辞</button>
+        <button class="ghost" data-act="sheet">打印重练单</button>
+        <button class="ghost" data-act="copy" id="btn-copy" disabled>复制</button>
       </div>
-      <pre id="report" style="display:none"></pre>
-    </section>`;
+      <pre id="report" hidden></pre>
+    </section>
+  </main>
+  <footer id="foot">一道错题不算改过了，直到它在三个间隔点上都被重新做对。</footer>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let S = null;
+let firstPaint = true;
+const sugg = {};          // 槽位 → 建议对象（含编号），重绘后还原
+const archOpen = new Set();
+const timers = new Map(); // 错题 id → {start, acc}
+
+/* ---------- 网络 ---------- */
+async function api(path, body, timeoutMs = 15000) {
+  const ctl = new AbortController();
+  const t = setTimeout(() => ctl.abort(), timeoutMs);
+  try {
+    const r = await fetch(path, {
+      method: body ? "POST" : "GET", signal: ctl.signal,
+      headers: body ? {"Content-Type": "application/json"} : undefined,
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    const ct = r.headers.get("content-type") || "";
+    const data = ct.includes("json") ? await r.json() : await r.text();
+    if (!r.ok) throw new Error((data && data.error) || (data && data.detail && JSON.stringify(data.detail)) || ("HTTP " + r.status));
+    return data;
+  } catch (e) {
+    if (e.name === "AbortError") throw new Error("请求超时，请再试一次");
+    if (e instanceof TypeError) throw new Error("连不上本地服务，确认 serve 还在运行");
+    throw e;
+  } finally { clearTimeout(t); }
 }
 
-async function initDoc() { await act(() => api('/api/init', {student: $('#i-name').value, grade: $('#i-grade').value}), '档案已建立'); }
-async function redo(id, passed) {
-  const sec = $(`#sec-${id}`); const nt = $(`#nt-${id}`);
-  await act(() => api(`/api/mistakes/${id}/redo`, {passed, seconds: sec && sec.value !== '' ? Number(sec.value) : null, note: nt ? nt.value : ''}),
-            passed ? '做对了，下一档已排好' : '回到阶梯底部，明天再来');
+/* ---------- 反馈 ---------- */
+function toast(msg, bad) {
+  const t = $("toast");
+  t.textContent = msg; t.classList.toggle("bad", !!bad); t.classList.add("show");
+  clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove("show"), bad ? 3600 : 2400);
 }
-function renderSuggest(box, sg, key, selectId) {
-  pending[key] = sg.id;
-  box.innerHTML = `<div class="suggest">
-    ${sg.code ? `建议 <b>${esc(sg.code)} ${esc(sg.cause_name)}</b>（${esc(sg.confidence)} · ${sg.source === 'ai' ? 'AI' : '规则'}）<br>依据你写的：<q>${esc(sg.evidence_quote)}</q>` : `暂时判断不出错因（${sg.source === 'ai' ? 'AI' : '规则'}）`}
+function seal(text) {
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return toast(text);
+  const d = document.createElement("div"); d.className = "seal"; d.innerHTML = `<span>${esc(text)}</span>`;
+  document.body.appendChild(d); setTimeout(() => d.remove(), 1400);
+}
+async function busy(btn, fn) {
+  if (btn) { if (btn.disabled) return; btn.disabled = true; btn.setAttribute("aria-busy", "true"); }
+  try { return await fn(); }
+  catch (e) { toast(e.message, true); }
+  finally { if (btn && btn.isConnected) { btn.disabled = false; btn.removeAttribute("aria-busy"); } }
+}
+
+/* ---------- 工具 ---------- */
+const dayDiff = (a, b) => Math.round((Date.parse(a + "T00:00:00Z") - Date.parse(b + "T00:00:00Z")) / 864e5);
+function rel(due) {
+  if (!due) return {text: "—", cls: ""};
+  const d = dayDiff(due, S.today);
+  if (d < 0) return {text: `逾期 ${-d} 天`, cls: "late"};
+  if (d === 0) return {text: "今天", cls: "today"};
+  if (d === 1) return {text: "明天", cls: ""};
+  return {text: `${d} 天后`, cls: ""};
+}
+const pct = x => x == null ? "—" : Math.round(x * 100) + "%";
+function dots(m) {
+  let h = "";
+  for (let i = 0; i < m.ladder_len; i++) h += `<i class="${i < m.stage ? "on" : ""}"></i>`;
+  return `<span class="dots" role="img" aria-label="${esc(m.stage_text)}" title="${esc(m.stage_text)}">${h}</span>`;
+}
+const causeTag = (m, v) => `<span class="tag${v ? " v" : ""}">${esc(m.cause)} ${esc(m.cause_name)}</span>`;
+const causeOptions = sel => S.causes.map(c => `<option value="${esc(c.code)}"${c.code === sel ? " selected" : ""}>${esc(c.code)} ${esc(c.name)}</option>`).join("");
+const byId = id => (S.open || []).find(m => m.id === id);
+
+// 重绘前后保留正在填写的内容与焦点
+function keepInputs(root) {
+  const vals = {};
+  root.querySelectorAll("[data-keep]").forEach(el => { vals[el.id] = el.value; });
+  return {vals, focus: document.activeElement && root.contains(document.activeElement) ? document.activeElement.id : null};
+}
+function restoreInputs(root, k) {
+  for (const [id, v] of Object.entries(k.vals)) { const el = $(id); if (el && root.contains(el)) el.value = v; }
+  if (k.focus && $(k.focus)) $(k.focus).focus({preventScroll: true});
+}
+function paint(sectionId, html, show = true) {
+  const sec = $(sectionId);
+  const k = keepInputs(sec);
+  sec.innerHTML = html; sec.hidden = !show;
+  restoreInputs(sec, k);
+  if (firstPaint && show) sec.classList.add("rise");
+}
+
+/* ---------- 渲染 ---------- */
+function renderAll() {
+  $("s-error").hidden = true;
+  const sections = ["s-week", "s-retag", "s-due", "s-add", "s-open", "s-report"];
+  if (!S.initialized) {
+    $("meta").textContent = "还没有学生档案。";
+    $("s-init").hidden = false; sections.forEach(id => $(id).hidden = true);
+    $("i-name").focus();
+    return;
+  }
+  $("s-init").hidden = true;
+  const st = S.student;
+  $("meta").textContent = `${st.name} · ${st.grade} · 今天 ${S.today} · 阶梯 ${S.ladder.join(" / ")} 天${S.ai_enabled ? " · AI 建议已开" : ""}`;
+  $("foot").innerHTML = `一道错题不算改过了，直到它在三个间隔点上都被重新做对。<br>再做对 v${esc(S.version)}`;
+  renderWeek(); renderRetag(); renderDue(); renderAddOnce(); renderOpen(); renderReport();
+  paintTimers();
+  firstPaint = false;
+}
+
+function renderWeek() {
+  const w = S.week, n = S.retag.length;
+  paint("s-week", `
+    <h2>本周 <span class="n">${esc(w.week_start)} ~ ${esc(w.week_end)}</span></h2>
+    <div class="nums">
+      <div class="num"><b>${pct(w.closure_rate)}</b><span>累计闭环率 · ${w.closed_total}/${w.closed_total + w.open_total}</span></div>
+      <div class="num"><b>${w.attempts}</b><span>本周重做 · 做对 ${w.passed}</span></div>
+      <div class="num"><b>${w.active_days}<small>/7</small></b><span>有重做的天数</span></div>
+      <div class="num${n ? " alert" : ""}"><b>${n}</b><span>两次没做对</span></div>
+    </div>`);
+}
+
+function renderRetag() {
+  if (!S.retag.length) { paint("s-retag", "", false); return; }
+  const items = S.retag.map(m => `
+    <article class="item">
+      <div class="item-head"><span class="topic">${esc(m.topic)}</span>${causeTag(m, true)}<span class="tag">错 ${m.fail_count} 次</span></div>
+      <div class="ref">${esc(m.problem)}</div>
+      <p class="step"><b>先归因</b>这道题两次没做对。写一句：这次想清楚了，错在哪一类？为什么？</p>
+      <label class="sr" for="rr-${esc(m.id)}">归因理由</label>
+      <textarea id="rr-${esc(m.id)}" data-keep data-slot="${esc(m.id)}" placeholder="我这次想清楚了……"></textarea>
+      <div class="row">
+        <label class="sr" for="rc-${esc(m.id)}">新的错因</label>
+        <select id="rc-${esc(m.id)}" data-keep class="grow">${causeOptions(m.cause)}</select>
+        <button class="ghost" data-act="suggest-retag" data-id="${esc(m.id)}">${S.ai_enabled ? "AI 建议错因" : "建议错因"}</button>
+        <button class="ok" data-act="retag" data-id="${esc(m.id)}">确认归因</button>
+      </div>
+      <div id="sugg-${esc(m.id)}"></div>
+    </article>`).join("");
+  paint("s-retag", `<h2>先重新归因 <span class="n">${S.retag.length} 道 · 想清楚错在哪一类，再重做</span></h2>${items}`);
+  S.retag.forEach(m => paintSugg(m.id));
+}
+
+function renderDue() {
+  let body;
+  if (S.due.length) {
+    body = S.due.map(m => {
+      const r = rel(m.due);
+      const timed = m.redo_mode === "timed";
+      return `
+      <article class="item">
+        <div class="item-head"><span class="topic">${esc(m.topic)}</span>${causeTag(m)}${dots(m)}</div>
+        <div class="ref">${esc(m.problem)}${r.cls === "late" ? ` · <span class="late">${r.text}</span>` : ""}</div>
+        <p class="step"><b>重做前先</b>${esc(m.next_step)}</p>
+        <div class="row">
+          ${timed ? `<button class="timer" data-act="timer" data-id="${esc(m.id)}">开始计时</button>
+          <label class="sr" for="sec-${esc(m.id)}">用时（秒）</label>
+          <input id="sec-${esc(m.id)}" data-keep inputmode="numeric" pattern="[0-9]*" placeholder="用时（秒）· 本题限时" style="flex:0 1 170px">` : ""}
+          <label class="sr" for="nt-${esc(m.id)}">这次怎么想的</label>
+          <input id="nt-${esc(m.id)}" data-keep class="grow" placeholder="这次怎么想的（选填）">
+        </div>
+        <div class="row">
+          <button class="ok" data-act="pass" data-id="${esc(m.id)}">做对了</button>
+          <button class="bad" data-act="fail" data-id="${esc(m.id)}">又错了</button>
+        </div>
+      </article>`;
+    }).join("");
+  } else {
+    const next = (S.open || []).find(m => !m.needs_retag && m.due);
+    body = `<p class="empty">今天没有到期的错题。${next ? `下一道：<b>${esc(next.topic)}</b> · ${rel(next.due).text}` : (S.open.length ? "" : "先在下面记一道。")}</p>`;
+  }
+  paint("s-due", `<h2>今天到期 <span class="n">${S.due.length} 道</span></h2>${body}`);
+}
+
+let addReady = false;
+function renderAddOnce() {
+  $("s-add").hidden = false;
+  if (addReady) return;
+  $("a-source").innerHTML = S.sources.map(s => `<option>${esc(s)}</option>`).join("");
+  $("a-cause").innerHTML = causeOptions("");
+  $("btn-suggest-add").textContent = S.ai_enabled ? "AI 建议错因" : "建议错因";
+  if (firstPaint) $("s-add").classList.add("rise");
+  addReady = true;
+}
+
+function renderOpen() {
+  const list = S.open || [];
+  $("open-n").textContent = `${list.length} 道 · 闭环 ${S.week.closed_total} 道`;
+  const rows = list.map(m => {
+    const r = m.needs_retag ? {text: "先归因", cls: "late"} : rel(m.due);
+    const open = archOpen.has(m.id);
+    return `
+    <div class="orow">
+      <div class="o-main"><b>${esc(m.topic)}</b><div class="ref" title="${esc(m.problem)}">${esc(m.problem)}</div></div>
+      <div class="o-meta">${causeTag(m, m.needs_retag)}${dots(m)}<span class="when ${r.cls}">${r.text}</span>
+        <button class="link" data-act="archive-toggle" data-id="${esc(m.id)}" aria-expanded="${open}">${open ? "取消" : "归档"}</button></div>
+      ${open ? `<div class="o-archive">
+        <label class="sr" for="ar-${esc(m.id)}">归档原因</label>
+        <input id="ar-${esc(m.id)}" data-keep placeholder="原因：超纲 / 题目有误 / 老师决定不练">
+        <button class="bad" data-act="archive" data-id="${esc(m.id)}">确认归档</button></div>` : ""}
+    </div>`;
+  }).join("");
+  const sec = $("s-open"); const k = keepInputs(sec);
+  $("open-list").innerHTML = rows || `<p class="empty">还没有在练的错题。</p>`;
+  restoreInputs(sec, k);
+  sec.hidden = false; if (firstPaint) sec.classList.add("rise");
+}
+
+function renderReport() {
+  $("s-report").hidden = false; if (firstPaint) $("s-report").classList.add("rise");
+  $("btn-parent-ai").hidden = !S.ai_enabled;
+}
+
+/* ---------- 建议 ---------- */
+function paintSugg(slot) {
+  const box = $(slot === "new" ? "sugg-new" : "sugg-" + slot);
+  if (!box) return;
+  const sg = sugg[slot];
+  if (!sg) { box.innerHTML = ""; return; }
+  const src = sg.source === "ai" ? "AI" : "规则";
+  const unsure = sg.code && sg.confidence === "low";
+  box.innerHTML = `<div class="sugg" role="note">
+    ${sg.code ? `${unsure ? "不太确定，可能是" : "建议"} <b>${esc(sg.code)} ${esc(sg.cause_name)}</b><span class="src">${esc(sg.confidence)} · ${src}</span>${sg.evidence_quote ? `<br>依据你写的：<q>${esc(sg.evidence_quote)}</q>` : ""}`
+              : `从你写的这句还看不出错在哪一类<span class="src">${src}</span>`}
     <br>先回答这个问题再决定：${esc(sg.question)}
-    ${sg.code ? `<div class="row"><button class="ghost" onclick="document.getElementById('${selectId}').value='${sg.code}'">填入 ${esc(sg.code)}</button></div>` : ''}
+    ${sg.code ? `<div class="row"><button class="ghost" data-act="fill" data-slot="${esc(slot)}">填入 ${esc(sg.code)}</button></div>` : ""}
   </div>`;
 }
-async function suggestNew() {
-  const note = $('#a-note').value.trim(), problem = $('#a-problem').value.trim();
-  if (!note) return toast('先写一句“我当时怎么想的”，AI 才有依据', true);
-  try { const sg = await api('/api/suggest', {problem, note}); renderSuggest($('#a-sugg'), sg, 'new', 'a-cause'); } catch (e) { toast(e.message, true); }
+function dropSugg(slot) { if (sugg[slot]) { delete sugg[slot]; paintSugg(slot); } }
+
+/* ---------- 计时 ---------- */
+const fmt = ms => { const s = Math.floor(ms / 1000); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; };
+const elapsed = t => t.acc + (t.start != null ? performance.now() - t.start : 0);
+function stopTimer(id) {
+  const t = timers.get(id); if (!t) return;
+  if (t.start != null) { t.acc += performance.now() - t.start; t.start = null; }
+  const inp = $("sec-" + id); if (inp) inp.value = Math.round(t.acc / 1000);
 }
-async function suggestFor(id) {
-  const note = $(`#rr-${id}`).value.trim(); const m = S.retag.find(x => x.id === id);
-  if (!note) return toast('先写一句这次想清楚了什么', true);
-  try { const sg = await api('/api/suggest', {problem: m.problem, note, for_id: id}); renderSuggest($(`#rs-${id}`), sg, id, `rc-${id}`); } catch (e) { toast(e.message, true); }
+function paintTimers() {
+  let running = false;
+  for (const [id, t] of timers) {
+    const b = document.querySelector(`button[data-act="timer"][data-id="${CSS.escape(id)}"]`);
+    if (!b) continue;
+    const on = t.start != null; running ||= on;
+    b.textContent = on ? `停止 ${fmt(elapsed(t))}` : (t.acc ? `继续 ${fmt(t.acc)}` : "开始计时");
+    b.classList.toggle("running", on); b.setAttribute("aria-pressed", on);
+  }
+  clearTimeout(paintTimers._t);
+  if (running) paintTimers._t = setTimeout(paintTimers, 250);
 }
-async function addNew() {
-  const body = {topic: $('#a-topic').value, source: $('#a-source').value, problem: $('#a-problem').value, note: $('#a-note').value, cause: $('#a-cause').value, suggestion: pending['new'] || null};
-  await act(async () => { const r = await api('/api/mistakes', body); delete pending['new']; return r; }, '已记下，明天重做');
+
+/* ---------- 动作 ---------- */
+async function load() {
+  try { S = await api("/api/state"); renderAll(); }
+  catch (e) {
+    $("meta").textContent = "";
+    $("err-msg").textContent = e.message; $("s-error").hidden = false;
+  }
 }
-async function doRetag(id) {
-  const body = {cause: $(`#rc-${id}`).value, reason: $(`#rr-${id}`).value, suggestion: pending[id] || null};
-  await act(async () => { const r = await api(`/api/mistakes/${id}/retag`, body); delete pending[id]; return r; }, '已重新归因，明天重做');
+
+const actions = {
+  async reload() { await load(); },
+  async init(btn) {
+    const student = $("i-name").value.trim(), grade = $("i-grade").value.trim();
+    if (!student || !grade) return toast("姓名和年级都要填", true);
+    await busy(btn, async () => { await api("/api/init", {student, grade}); toast("档案已建立"); await load(); });
+  },
+  async pass(btn) { await redo(btn, true); },
+  async fail(btn) { await redo(btn, false); },
+  timer(btn) {
+    const id = btn.dataset.id; const t = timers.get(id) || {start: null, acc: 0};
+    if (t.start == null) { t.start = performance.now(); timers.set(id, t); } else { timers.set(id, t); stopTimer(id); }
+    paintTimers();
+  },
+  async "suggest-add"(btn) {
+    const note = $("a-note").value.trim(), problem = $("a-problem").value.trim();
+    if (!note) { $("a-note").focus(); return toast("先写一句“我当时怎么想的”，建议要靠它", true); }
+    await busy(btn, async () => { sugg.new = await api("/api/suggest", {problem, note}, 40000); paintSugg("new"); });
+  },
+  async "suggest-retag"(btn) {
+    const id = btn.dataset.id, m = byId(id), note = $("rr-" + id).value.trim();
+    if (!note) { $("rr-" + id).focus(); return toast("先写一句这次想清楚了什么", true); }
+    await busy(btn, async () => { sugg[id] = await api("/api/suggest", {problem: m.problem, note, for_id: id}, 40000); paintSugg(id); });
+  },
+  fill(btn) {
+    const slot = btn.dataset.slot, sg = sugg[slot]; if (!sg) return;
+    const sel = $(slot === "new" ? "a-cause" : "rc-" + slot); sel.value = sg.code; sel.focus();
+  },
+  async add(btn) {
+    const body = {topic: $("a-topic").value.trim(), source: $("a-source").value, problem: $("a-problem").value.trim(),
+                  note: $("a-note").value.trim(), cause: $("a-cause").value, suggestion: sugg.new ? sugg.new.id : null};
+    if (!body.topic) { $("a-topic").focus(); return toast("知识点不能为空", true); }
+    if (!body.problem) { $("a-problem").focus(); return toast("题目引用不能为空（写题号即可）", true); }
+    await busy(btn, async () => {
+      const r = await api("/api/mistakes", body);
+      $("a-problem").value = ""; $("a-note").value = ""; dropSugg("new");
+      toast(`已记下，${rel(r.mistake.due).text}重做${r.accepted === true ? " · 采纳了建议" : ""}`);
+      await load(); $("a-problem").focus();
+    });
+  },
+  async retag(btn) {
+    const id = btn.dataset.id, reason = $("rr-" + id).value.trim();
+    if (!reason) { $("rr-" + id).focus(); return toast("重新归因要写一句理由", true); }
+    await busy(btn, async () => {
+      await api(`/api/mistakes/${encodeURIComponent(id)}/retag`, {cause: $("rc-" + id).value, reason, suggestion: sugg[id] ? sugg[id].id : null});
+      delete sugg[id]; toast("已重新归因，明天重做"); await load();
+    });
+  },
+  "archive-toggle"(btn) {
+    const id = btn.dataset.id; archOpen.has(id) ? archOpen.delete(id) : archOpen.add(id);
+    renderOpen(); if (archOpen.has(id)) $("ar-" + id).focus();
+  },
+  async archive(btn) {
+    const id = btn.dataset.id, reason = $("ar-" + id).value.trim();
+    if (!reason) { $("ar-" + id).focus(); return toast("归档要写原因", true); }
+    await busy(btn, async () => {
+      await api(`/api/mistakes/${encodeURIComponent(id)}/archive`, {reason});
+      archOpen.delete(id); toast("已归档，不再提醒"); await load();
+    });
+  },
+  async report(btn) {
+    await busy(btn, async () => {
+      const t = await api(btn.dataset.path, null, btn.dataset.path.includes("ai=1") ? 40000 : 15000);
+      const pre = $("report"); pre.textContent = t; pre.hidden = false; $("btn-copy").disabled = false;
+    });
+  },
+  sheet() { window.open("/api/sheet", "_blank", "noopener"); },
+  async copy() {
+    try { await navigator.clipboard.writeText($("report").textContent); toast("已复制"); }
+    catch { const r = document.createRange(); r.selectNodeContents($("report")); const s = getSelection(); s.removeAllRanges(); s.addRange(r); toast("已选中，按 Ctrl+C 复制"); }
+  },
+};
+
+async function redo(btn, passed) {
+  const id = btn.dataset.id;
+  if (timers.has(id)) stopTimer(id);
+  const secEl = $("sec-" + id), raw = secEl ? secEl.value.trim() : "";
+  if (raw !== "" && !/^\d+$/.test(raw)) { secEl.focus(); return toast("用时要填整数秒", true); }
+  const body = {passed, seconds: raw === "" ? null : Number(raw), note: $("nt-" + id) ? $("nt-" + id).value.trim() : ""};
+  await busy(btn, async () => {
+    const r = await api(`/api/mistakes/${encodeURIComponent(id)}/redo`, body);
+    timers.delete(id);
+    const m = r.mistake;
+    if (m.status === "closed") seal("闭 环");
+    else if (passed) toast(`做对了 · 已过 ${m.stage}/${m.ladder_len} 档，${rel(m.due).text}再做`);
+    else if (m.needs_retag) toast("第二次没做对：先想清楚错在哪一类", true);
+    else toast("回到第一档，明天再来");
+    await load();
+  });
 }
-async function showReport(path) {
-  try { const t = await api(path); const pre = $('#report'); pre.textContent = t; pre.style.display = 'block'; $('#copy').disabled = false; } catch (e) { toast(e.message, true); }
-}
-async function copyReport() { try { await navigator.clipboard.writeText($('#report').textContent); toast('已复制'); } catch (e) { toast('复制失败，请手动选择文本', true); } }
-load().catch(e => { $('#meta').textContent = '载入失败：' + e.message; });
+
+document.addEventListener("click", e => {
+  const btn = e.target.closest("button[data-act]");
+  if (!btn || !actions[btn.dataset.act]) return;
+  e.preventDefault();
+  actions[btn.dataset.act](btn);
+});
+document.addEventListener("input", e => {
+  if (e.target.id === "a-note") dropSugg("new");
+  else if (e.target.dataset && e.target.dataset.slot) dropSugg(e.target.dataset.slot);
+});
+document.addEventListener("keydown", e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === "Enter" && e.target.closest("#s-add")) { e.preventDefault(); actions.add(document.querySelector('#s-add button[data-act="add"]')); }
+  else if (e.key === "Enter" && e.target.closest("#s-init")) { e.preventDefault(); actions.init(document.querySelector('#s-init button[data-act="init"]')); }
+});
+document.addEventListener("visibilitychange", () => { if (!document.hidden && S && S.initialized) load(); });
+load();
 </script>
 </body>
 </html>

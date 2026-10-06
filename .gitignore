@@ -1,8 +1,9 @@
 __pycache__/
 *.pyc
 .pytest_cache/
-*.json.tmp
+*.tmp
 *.json.bak/
 redo_right_data.json
 out/
 .env
+*.lock
