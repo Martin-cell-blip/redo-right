@@ -1,0 +1,28 @@
+{
+  "n": 84,
+  "strict_agree": 83,
+  "lenient_agree": 84,
+  "kappa_7": 0.9859531772575252,
+  "kappa_null": 1.0,
+  "disagreements": [
+    {
+      "id": "n-01",
+      "split": "test",
+      "category": "noisy",
+      "gold": "C4",
+      "second": "C3",
+      "model": "C3",
+      "model_strict": false
+    }
+  ],
+  "model_wrong": [
+    "p-05",
+    "n-01",
+    "n-04"
+  ],
+  "model_wrong_on_disagreement": [
+    "n-01"
+  ],
+  "blind_file": "blind_labels_sonnet_2026-10-10.json",
+  "run_file": "2026-10-06_ai_v2_new-contract.json"
+}
